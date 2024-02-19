@@ -1,0 +1,10 @@
+localhost {
+  reverse_proxy web:80
+  reverse_proxy web:443
+  header Strict-Transport-Security "max-age=15552000;"
+  rewrite /.well-known/carddav /remote.php/dav
+  rewrite /.well-known/caldav /remote.php/dav
+  rewrite /.well-known/webfinger /index.php/.well-known/webfinger
+  rewrite /.well-known/nodeinfo /index.php/.well-known/nodeinfo
+  tls internal
+}
