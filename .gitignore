@@ -1,2 +1,22 @@
+## Exercise 1 
+
 /exercise01/__pycache__
-# /downloaded_files 
+/exercise01/downloaded_files 
+
+## Exercise 2
+
+## Exercise 3
+
+## General
+
+# LaTeX compilation files: 
+*.aux
+*.log
+*.out
+*.toc
+*.pdf
+/clear.sh
+
+# editor files
+.vscode
+*~

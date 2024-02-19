@@ -1,0 +1,119 @@
+\section{Exercise 1}
+
+\subsection{Requirements}
+\label{subsec:requirements}
+
+The \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main/exercise01/assignment.md}{assignment} requires the deployment of a scalable and secure file storage system. In particular the requirements are:
+
+\begin{enumerate}
+    \item \textit{Management of user authentication and authorization}
+    \begin{enumerate}
+        \item User should be able to sing up, log in and log out [\ref{subsec:nextcloud}]
+        \item User should have different roles, i.e. admin and regular user [\ref{subsec:nextcloud}]
+        \item Admin should be able to create, delete and modify users [\ref{subsec:nextcloud}]
+        \item Regular user should have access to a personal storage space [\ref{subsec:nextcloud}]
+    \end{enumerate}
+
+    \item \textit{Management of file operations}
+    \begin{itemize}
+        \item User should be able to upload, download, delete and modify from their private storage space [\ref{subsec:nextcloud}]
+    \end{itemize}
+
+    \item \textit{Scalability}
+    \begin{enumerate}
+        \item The designed system should handle a growing number of users and files [\ref{subsec:scalability}]
+        \item A theoretical discussion about the way to increase load and traffic [\ref{subsec:scalability}, \ref{subsec:costs}]
+    \end{enumerate}
+
+    \item{Security}
+    \begin{enumerate}
+        \item The secure file storage and transmission should be implemented [\ref{subsec:security}]
+        \item Discussion about how to secure user authentication [\ref{subsec:security}, \ref{subsec:nextcloud}]
+        \item Discussion about measures to prevent unauthorized access [\ref{subsec:security}]
+    \end{enumerate}
+
+    \item{Cost-effectiveness}
+    \begin{itemize}
+        \item Discussion about the costs implications of the designed system and how to optimize them [\ref{subsec:costs}]
+    \end{itemize}
+
+    \item{Deployment}
+    \begin{enumerate}
+        \item Provision of containerized environment based on docker [\ref{subsec:deployment}]
+        \item Choice of a cloud provider to deploy the system in a production scenario [\ref{subsec:deployment-real-world}]
+    \end{enumerate}
+
+    \item{Testing}
+    \begin{enumerate}
+        \item Assessment of the system performance: load [\ref{subsubsec:test}]
+        \item Assessment of the system performance: I/O  [\ref{subsubsec:test}]
+    \end{enumerate}
+\end{enumerate}
+
+Following the assignment suggestion, the presented solution will be based on the \href{https://nextcloud.com/}{Nextcloud} platform.
+
+
+\subsection{Technical deployment details}
+\label{subsec:deployment}
+
+The deployment of the system is based on the use of \href{https://www.docker.com/}{Docker} containers.
+In particular, since more than one container is used, the \href{https://docs.docker.com/compose/}{\texttt{docker-compose}} tool is used to manage the deployment.
+The complete of the multi-container setting configuration is done in the \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main/exercise01/docker-compose.yaml}{\texttt{docker-compose.yaml}} file.
+All the user container are taken from the \href{https://hub.docker.com/}{Docker Hub} and properly configured, no custom images are used.
+
+All the container shares the same network called \texttt{nextcloud\_network}, which can be created with:
+
+\begin{lstlisting}[language=bash]
+$ docker network create nextcloud_network
+\end{lstlisting}
+
+\subsubsection{Used images}
+The \texttt{docker-compose.yml} file uses the following images\footnote{This configuration is heavily inspired by one of the \href{https://github.com/nextcloud/docker/blob/master/.examples/docker-compose/with-nginx-proxy/mariadb/fpm/docker-compose.yml}{examples provided by the Nextcloud team}.}:
+
+\begin{enumerate}
+    \item \href{https://hub.docker.com/layers/library/nextcloud/28.0.2-fpm/images/sha256-dc1b232c39cd29fe81442f0e4d1c523148afecaf0bcf1cdffb7c52441bf63af7?context=explore}{\texttt{nextcloud:28.0.2-fpm}}: 
+    base image for the Nextcloud platform. In particular two images are used, the principal one for having the desired storage platform and a second one which is going to run the built-in \texttt{cron.sh}  script for background tasks\footnote{This solution was inspired by \href{https://help.nextcloud.com/t/nextcloud-docker-container-best-way-to-run-cron-job/157734/2}{this} and \href{https://help.nextcloud.com/t/clarification-regarding-cron-jobs-setup-config/134450}{this} forum pages}.
+    \item \href{https://hub.docker.com/_/mariadb}{\texttt{mariadb:11.2.3}}: the databases the official Nextcloud documentation suggests to use. 
+    \item \href{https://hub.docker.com/_/nginx}{\texttt{nginx:1.25.4-alpine3.18}}: the web server used to serve the Nextcloud platform, the other alternative were apache.
+    \item \href{https://hub.docker.com/_/redis}{\texttt{redis:7.2.4-alpine}}: the cache server; when a client requests a file, the server will first check if the file is in the cache, this should enhance the performance.
+    \item \href{https://hub.docker.com/_/caddy}{\texttt{caddy:2.7.6-alpine}}: a lightweight web server, used as a reverse proxy. It was chosen because it automatically manages the SSL certificate[\ref{subsec:security}].
+\end{enumerate}
+
+Three volumes are used to store the data: \texttt{nextcloud\_data}, \texttt{db\_data} and \texttt{caddy\_data}. 
+To run the project, first create those volumes with: \texttt{docker volume <volume\_name>}, then run:
+
+\begin{lstlisting}[language=bash]
+$ docker-compose up -d
+\end{lstlisting}
+
+The \texttt{docker-compose} tool will create the containers and the network, and the system will be ready to use and accessible at \texttt{https://localhost}\footnote{A self-signed certificate is used, so the browser will show a warning.}; the first time the system is accessed, the user will be asked to create an admin account.
+
+\subsection{Nextcloud characteristics}
+\label{subsec:nextcloud}
+
+Nextcloud offers out-of-the-box all the functionalities required at \hyperref[subsec:requirements]{points 1 and 2} of the requirements.
+
+Using the provided web interface, the admin can create, delete and modify users.
+Obviously, every created user can log in, log out to the system.
+Every user (normal or admin) has access to a personal storage space, where they can upload, download, delete and modify files that are not accessible by other users.
+
+The admin can also limited the storage space available to each user (default no limitation, but 1GB, 5GB, 15GB quotas are available).
+
+\subsection{Scalability considerations}
+\label{subsec:scalability}
+
+\subsection{Security measures}
+\label{subsec:security}
+
+\subsection{Costs and technical considerations}
+\label{subsec:costs}
+
+\subsubsection{Test of the infrastructure}
+\label{subsubsec:test}
+%% load and I/O tests
+
+\subsection{Deployment plans for hypothetical real-world scenario}
+\label{subsec:deployment-real-world}
+
+\subsection{Conclusions}
+\label{subsec:conclusions}
