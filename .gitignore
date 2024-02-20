@@ -2,7 +2,8 @@
 
 /exercise01/__pycache__
 /exercise01/locust/__pycache__/
-# /exercise01/locust/downloaded_files 
+/exercise01/locust/downloaded_files 
+/exercise01/locust/to_upload_files/large
 
 ## Exercise 2
 

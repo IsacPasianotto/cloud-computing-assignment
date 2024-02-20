@@ -13,7 +13,6 @@ class NextcloudUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_id = None
-        self.auth_token = None
         self.client.verify = False  # Add this line to disable SSL verification
         self.counter = 0
 
@@ -40,8 +39,9 @@ class NextcloudUser(HttpUser):
     def upload_files(self):
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
-        filename = "to_upload.txt"
+        filename = "small"
         remotefilename = f"{username}_{filename}_{self.counter}"
+        filename = "to_upload_files/small"
 
         # login to the server with the user credentials
         self.client.get(
@@ -61,7 +61,7 @@ class NextcloudUser(HttpUser):
                 verify=False,
             )
 
-        if response.status_code == 201:
+        if response.status_code == 204:
             print(f"User {username} uploaded the file {filename} successfully")
             self.counter += 1
         else:

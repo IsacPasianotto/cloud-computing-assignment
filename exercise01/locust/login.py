@@ -12,7 +12,7 @@ class NextcloudUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_id = None
-
+        
     def on_start(self):
         self.user_id = self.environment.runner.user_count
         

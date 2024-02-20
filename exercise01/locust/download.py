@@ -13,7 +13,6 @@ class NextcloudUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_id = None
-        self.auth_token = None
         self.client.verify = False  # Add this line to disable SSL verification
         self.counter = 0
 
@@ -40,7 +39,7 @@ class NextcloudUser(HttpUser):
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
 
-        filename = "to_upload.txt"
+        filename = "to_download.txt"
         downloaddir = "downloaded_files"
         downloadName = f"{downloaddir}/downloaded_{self.user_id}_{self.counter}.txt"
         remote_file = f"https://localhost/remote.php/dav/files/{username}/{filename}"

@@ -51,7 +51,7 @@ if ! [[ $NUM_USERS =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-if [-z "$FILE" ]; then
+if [ -z "$FILE" ]; then
     FILE='to_upload.txt'
 fi 
 
@@ -60,7 +60,7 @@ if ! [ -f "$FILE" ]; then
     exit 1
 fi
 
-if [-z "$REMOTE_FILE" ]; then
+if [ -z "$REMOTE_FILE" ]; then
     REMOTE_FILE=$FILE
 fi
 
