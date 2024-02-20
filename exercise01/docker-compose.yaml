@@ -10,7 +10,7 @@ services:
       - nextcloud_network
     volumes:
       - nextcloud_data:/var/www/html:z
-      - ./php-fpm-www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - ./other-confs/php-fpm-www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
     environment:
       - MYSQL_USER
       - MYSQL_PASSWORD
@@ -21,7 +21,7 @@ services:
       - OVERWRITEHOST
       - TRUSTED_PROXIES
       - APACHE_DISABLE_REWRITE_IP
-      - PHP_FPM_MAX_CHILDREN=256 # Adjust the number based on your server resources
+      - PHP_FPM_MAX_CHILDREN=1024 # Adjust the number based on your server resources
     restart: unless-stopped
     depends_on:
       - caddy
@@ -78,7 +78,7 @@ services:
       - "caddy.rewrite_3=/.well-known/nodeinfo /index.php/.well-known/nodeinfo"
     volumes:
       - nextcloud_data:/var/www/html:z,ro
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./other-confs/nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
   
   # Redis cache
@@ -102,7 +102,7 @@ services:
       - nextcloud_network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./other-confs/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
     restart: unless-stopped
   

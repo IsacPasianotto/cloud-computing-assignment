@@ -22,7 +22,6 @@ class NextcloudUser(HttpUser):
         self.login()
 
     def login(self):
-        # Log in and capture authentication token
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
 
@@ -32,16 +31,12 @@ class NextcloudUser(HttpUser):
             name="Login",
             verify=False
         )
-
         if response.status_code == 200:
             print(f"User {username} logged in successfully")
-            # Extract authentication token from response headers
-            self.auth_token = response.headers.get("Set-Cookie", "").split("oc_sessionPassphrase=")[-1].split(";")[0]
         else:
             print(f"Failed to log in for user {username}, tried with password {password}")
 
     def download_file(self):
-        # Download the file from the server
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
 
@@ -53,21 +48,18 @@ class NextcloudUser(HttpUser):
         response = self.client.get(
             remote_file,
             name="Download File",
-            auth=(username, password),  # Use the auth parameter for basic authentication
+            auth=(username, password),
             allow_redirects=True,
             verify=False,
         )
 
         if response.status_code == 200:
-            print(f"User {username} downloaded the file {filename} successfully")
-            # write as fast as possible the file: 
-            
+            print(f"User {username} downloaded the file {filename} successfully")            
             with open(downloadName, "wb") as file:
                 file.write(response.content)
                 self.counter +=1
         else:
             print(f"Failed to download the file {filename} for user {username}")
-            # print(response.content)
         
     @task(1)
     def download_scenario(self):
@@ -75,8 +67,7 @@ class NextcloudUser(HttpUser):
 
 # Run the test
 def main():
-    # Do not show the output of the script
-    os.system("locust -f locustfile_download.py --host https://localhost")
+    os.system("locust -f download.py --host https://localhost")
 
 if __name__ == "__main__":
     main()

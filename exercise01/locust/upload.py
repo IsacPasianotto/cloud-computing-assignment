@@ -1,7 +1,7 @@
 from locust import HttpUser, task, between
 import urllib3
 import os 
-import time 
+
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -22,7 +22,6 @@ class NextcloudUser(HttpUser):
         self.login()
 
     def login(self):
-        # Log in and capture authentication token
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
 
@@ -35,50 +34,13 @@ class NextcloudUser(HttpUser):
 
         if response.status_code == 200:
             print(f"User {username} logged in successfully")
-            # Extract authentication token from response headers
-            self.auth_token = response.headers.get("Set-Cookie", "").split("oc_sessionPassphrase=")[-1].split(";")[0]
         else:
             print(f"Failed to log in for user {username}, tried with password {password}")
-    #
-    # def download_file(self):
-    #     # Download the file from the server
-    #     username = f"user{self.user_id}"
-    #     password = f"this_is_a_secure_password_{self.user_id}"
-    #
-    #     filename = "to_upload.txt"
-    #     downloaddir = "downloaded_files"
-    #     downloadName = f"{downloaddir}/downloaded_{self.user_id}.txt"
-    #     remote_file = f"https://localhost/remote.php/dav/files/{username}/{filename}"
-    #
-    #     response = self.client.get(
-    #         remote_file,
-    #         name="Download File",
-    #         auth=(username, password),  # Use the auth parameter for basic authentication
-    #         allow_redirects=True,
-    #         verify=False,
-    #     )
-    #
-    #     if response.status_code == 200:
-    #         print(f"User {username} downloaded the file {filename} successfully")
-    #         with open(downloadName, "wb") as file:
-    #             file.write(response.content)
-    #     else:
-    #         print(f"Failed to download the file {filename} for user {username}")
-    #         print(response.content)
-    #     
-    # @task(1)
-    # def download_scenario(self):
-    #     self.download_file()
 
     def upload_files(self):
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
-
         filename = "to_upload.txt"
-        # remotefilename = f"{username}_{filename}_{self.counter}"
-        # if the file is already uploaded, there will be an error. 
-        # So, we will use a random hash to avoid the error
-        # we will use an hash function on the current time to get a random hash
         remotefilename = f"{username}_{filename}_{self.counter}"
 
         # login to the server with the user credentials
@@ -111,11 +73,9 @@ class NextcloudUser(HttpUser):
         self.upload_files()
 
 
-
 # Run the test
 def main():
-    # Do not show the output of the script
-    os.system("locust -f locustfile_upload.py --host https://localhost")
+    os.system("locust -f upload.py --host https://localhost")
 
 if __name__ == "__main__":
     main()
