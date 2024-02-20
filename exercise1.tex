@@ -6,8 +6,10 @@
 The \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main/exercise01/assignment.md}{assignment} requires the deployment of a scalable and secure file storage system. In particular the requirements are:
 
 \begin{enumerate}
+    \itemsep0em
     \item \textit{Management of user authentication and authorization}
     \begin{enumerate}
+        \itemsep0em
         \item User should be able to sing up, log in and log out [\ref{subsec:nextcloud}]
         \item User should have different roles, i.e. admin and regular user [\ref{subsec:nextcloud}]
         \item Admin should be able to create, delete and modify users [\ref{subsec:nextcloud}]
@@ -16,42 +18,47 @@ The \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main
 
     \item \textit{Management of file operations}
     \begin{itemize}
+        \itemsep0em
         \item User should be able to upload, download, delete and modify from their private storage space [\ref{subsec:nextcloud}]
     \end{itemize}
 
     \item \textit{Scalability}
     \begin{enumerate}
-        \item The designed system should handle a growing number of users and files [\ref{subsec:scalability}]
-        \item A theoretical discussion about the way to increase load and traffic [\ref{subsec:scalability}, \ref{subsec:costs}]
+        \itemsep0em
+        \item The designed system should handle a growing number of users and files [\ref{subsec:deployment-real-world}]
+        \item A theoretical discussion about the way to increase load and traffic [\ref{subsec:deployment-real-world}, \ref{subsec:costs}]
     \end{enumerate}
 
     \item{Security}
     \begin{enumerate}
+        \itemsep0em
         \item The secure file storage and transmission should be implemented [\ref{subsec:security}]
-        \item Discussion about how to secure user authentication [\ref{subsec:security}, \ref{subsec:nextcloud}]
+        \item Discussion about how to secure user authentication [\ref{subsec:security}, \ref{subsec:deployment}]
         \item Discussion about measures to prevent unauthorized access [\ref{subsec:security}]
     \end{enumerate}
 
     \item{Cost-effectiveness}
     \begin{itemize}
+        \itemsep0em
         \item Discussion about the costs implications of the designed system and how to optimize them [\ref{subsec:costs}]
     \end{itemize}
 
     \item{Deployment}
     \begin{enumerate}
+        \itemsep0em
         \item Provision of containerized environment based on docker [\ref{subsec:deployment}]
         \item Choice of a cloud provider to deploy the system in a production scenario [\ref{subsec:deployment-real-world}]
     \end{enumerate}
 
     \item{Testing}
     \begin{enumerate}
+        \itemsep0em
         \item Assessment of the system performance: load [\ref{subsubsec:test}]
         \item Assessment of the system performance: I/O  [\ref{subsubsec:test}]
     \end{enumerate}
 \end{enumerate}
 
 Following the assignment suggestion, the presented solution will be based on the \href{https://nextcloud.com/}{Nextcloud} platform.
-
 
 \subsection{Technical deployment details}
 \label{subsec:deployment}
@@ -71,6 +78,7 @@ $ docker network create nextcloud_network
 The \texttt{docker-compose.yml} file uses the following images\footnote{This configuration is heavily inspired by one of the \href{https://github.com/nextcloud/docker/blob/master/.examples/docker-compose/with-nginx-proxy/mariadb/fpm/docker-compose.yml}{examples provided by the Nextcloud team}.}:
 
 \begin{enumerate}
+    \itemsep0em
     \item \href{https://hub.docker.com/layers/library/nextcloud/28.0.2-fpm/images/sha256-dc1b232c39cd29fe81442f0e4d1c523148afecaf0bcf1cdffb7c52441bf63af7?context=explore}{\texttt{nextcloud:28.0.2-fpm}}: 
     base image for the Nextcloud platform. In particular two images are used, the principal one for having the desired storage platform and a second one which is going to run the built-in \texttt{cron.sh}  script for background tasks\footnote{This solution was inspired by \href{https://help.nextcloud.com/t/nextcloud-docker-container-best-way-to-run-cron-job/157734/2}{this} and \href{https://help.nextcloud.com/t/clarification-regarding-cron-jobs-setup-config/134450}{this} forum pages}.
     \item \href{https://hub.docker.com/_/mariadb}{\texttt{mariadb:11.2.3}}: the databases the official Nextcloud documentation suggests to use. 
@@ -80,13 +88,11 @@ The \texttt{docker-compose.yml} file uses the following images\footnote{This con
 \end{enumerate}
 
 Three volumes are used to store the data: \texttt{nextcloud\_data}, \texttt{db\_data} and \texttt{caddy\_data}. 
-To run the project, first create those volumes with: \texttt{docker volume <volume\_name>}, then run:
-
+To run the project, first create those volumes with: \texttt{docker volume <volume\_name>}, then run\footnote{If your system relies on \href{https://www.redhat.com/en/topics/linux/what-is-selinux}{SELinux}, this will probably cause some issues. For the purpose of this exercise, I've just disabled it with \texttt{sudo setenforce 0}. In a production environment, it should be properly configured.}:
 \begin{lstlisting}[language=bash]
 $ docker-compose up -d
 \end{lstlisting}
-
-The \texttt{docker-compose} tool will create the containers and the network, and the system will be ready to use and accessible at \texttt{https://localhost}\footnote{A self-signed certificate is used, so the browser will show a warning.}; the first time the system is accessed, the user will be asked to create an admin account.
+The \texttt{docker-compose} tool will create the containers, then the system will be ready to use and accessible at \texttt{https://localhost}\footnote{A self-signed certificate is used, so the browser will show a warning.}; the first time the system is accessed, the user will be asked to create an admin account.
 
 \subsection{Nextcloud characteristics}
 \label{subsec:nextcloud}
@@ -99,14 +105,49 @@ Every user (normal or admin) has access to a personal storage space, where they 
 
 The admin can also limited the storage space available to each user (default no limitation, but 1GB, 5GB, 15GB quotas are available).
 
-\subsection{Scalability considerations}
-\label{subsec:scalability}
-
 \subsection{Security measures}
 \label{subsec:security}
 
+\subsubsection{Storage security}
+Nextcloud software comes with a lot of security features which can help to fulfill the requirements at \hyperref[subsec:requirements]{point 4}.
+First of all, for what regards the secure file storage, there is the possibility to enable the server-side encryption, which encrypts the files before they are uploaded to the server.
+This can be activated both form the web interface with a admin account (\textit{Administration settings} $\rightarrow$ \textit{Administration Security} $\rightarrow$ \textit{Server-side encryption})
+or from the command line with the \href{https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/occ_command.html}{\texttt{occ}} command:
+
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize]
+$ docker exec --user www-data nextcloud-app /var/www/html/occ app:enable encryption
+$ docker exec --user www-data nextcloud-app /var/www/html/occ encryption:enable
+$ # to encrypt all the files already uploaded: 
+$ echo "yes" | docker exec -i --user www-data nextcloud-app /var/www/html/occ encryption:encrypt-all
+\end{lstlisting}
+
+\subsubsection{User authentication security}
+Moreover, Nextcloud provides useful features to enhance the security of the user authentication; in the same \textit{Administration Security} section mentioned above, the admin can enable: 
+% avoid to leave empty space between the items
+
+\begin{itemize}
+    \itemsep0em
+    \item Enforce the use of both upper and lower case letters, enforce the use of numbers and enforce the use of special characters in the user password;
+    \item Forbid the use of common passwords;
+    \item Set the minimum length of the password;
+    \item Check the password against the \href{https://haveibeenpwned.com/}{haveibeenpwned.com} database.
+    \item Tune the number of days after which the user is forced to change the password and the history of the password (i.e. the user cannot use the same password for a certain number of times).
+    \item Enable the two-factor authentication.
+\end{itemize}
+
+Additionally, Nextcloud is compatible with  \href{https://oauth.net/2/}{OAuth 2.0} protocol, which can be used to authenticate the user with a third-party service, and it has an actionable app to prevent brute force attacks.
+
+\subsubsection{SSL certificate}
+
+All the already mentioned security measures can only guarantee a good security from the server side. In a real-world scenario, the server will not be the \texttt{localhost}, but most likely a domain name.
+In this case, a critical point is the communication between the user's browser (or client) and the server itself. 
+This is the reason why in the \texttt{docker-compose.yaml} file, the \texttt{caddy} container is used. In fact it automatically manages the SSL certificate, so the communication between the user and the server is encrypted and uses the HTTPS protocol.
+
+
 \subsection{Costs and technical considerations}
 \label{subsec:costs}
+
+
 
 \subsubsection{Test of the infrastructure}
 \label{subsubsec:test}
