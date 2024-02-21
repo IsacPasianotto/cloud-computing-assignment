@@ -1,6 +1,0 @@
-Method,Name,Error,Occurrences
-PUT,Upload File,HTTPError('429 Client Error: Too Many Requests for url: Upload File'),29
-PUT,Upload File,"SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:2406)')",27
-GET,Login,HTTPError('429 Client Error: Too Many Requests for url: Login'),64
-GET,Download File,HTTPError('429 Client Error: Too Many Requests for url: Download File'),23
-POST,Login,HTTPError('429 Client Error: Too Many Requests for url: Login'),21
