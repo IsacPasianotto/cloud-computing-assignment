@@ -1,6 +1,7 @@
 from locust import HttpUser, task, between
 from requests.auth import HTTPBasicAuth
 import urllib3
+import random 
 import os
 
 # Disable SSL warnings
@@ -30,10 +31,6 @@ class NextcloudUser(HttpUser):
             name="Login",
             verify=False
         )
-        if response.status_code == 200:
-            print(f"User {username} logged in successfully")
-        else:
-            print(f"Failed to log in for user {username}, tried with password {password}")
 
     def download_file(self):
         username = f"user{self.user_id}"
@@ -51,14 +48,10 @@ class NextcloudUser(HttpUser):
             allow_redirects=True,
             verify=False,
         )
-
         if response.status_code == 200:
-            print(f"User {username} downloaded the file {filename} successfully")
             with open(downloadName, "wb") as file:
                 file.write(response.content)
                 self.counter += 1
-        else:
-            print(f"Failed to download the file {filename} for user {username}")
 
     def upload_files(self, filename="small"):
         username = f"user{self.user_id}"
@@ -84,28 +77,26 @@ class NextcloudUser(HttpUser):
                 verify=False,  # Add this line to disable SSL verification
             )
 
-        if response.status_code == 204:
-            print(f"User {username} uploaded the file {filename} successfully")
-            self.counter += 1
-        else:
-            print(f"Failed to upload the file {filename} for user {username}")
-            print(response.content)
-
-    @task(7)
-    def download(self):
-        self.download_file()
-
-    @task(10)
-    def upload_small(self):
-        self.upload_files("small")
-
-    @task(8)
-    def upload_medium(self):
-        self.upload_files("medium")
-
+    # Weighted tasks will assign to a user always the same task.
+    # In this case, every user will perform a random action at each request
     @task(1)
-    def upload_large(self):
-        self.upload_files("large")
+    def perform_an_action(self):
+        random_float = random.random()
+        #  Task:         Prob
+        #  Download       0.3
+        #  Upload small   0.3
+        #  Upload medium  0.35
+        #  Upload large   0.05
+        if random_float < 0.3:
+            self.download_file()
+        elif random_float < 0.6:
+            self.upload_files("small")
+        elif random_float < 0.95:
+            self.upload_files("medium")
+        else:
+            self.upload_files("large")
+
+    
 
 # Run the test
 def main():

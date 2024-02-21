@@ -30,10 +30,6 @@ class NextcloudUser(HttpUser):
             name="Login",
             verify=False
         )
-        if response.status_code == 200:
-            print(f"User {username} logged in successfully")
-        else:
-            print(f"Failed to log in for user {username}, tried with password {password}")
 
     def download_file(self):
         username = f"user{self.user_id}"
@@ -53,13 +49,10 @@ class NextcloudUser(HttpUser):
         )
 
         if response.status_code == 200:
-            print(f"User {username} downloaded the file {filename} successfully")            
             with open(downloadName, "wb") as file:
                 file.write(response.content)
                 self.counter +=1
-        else:
-            print(f"Failed to download the file {filename} for user {username}")
-        
+
     @task(1)
     def download_scenario(self):
         self.download_file()

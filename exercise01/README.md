@@ -39,6 +39,14 @@ cd scripts
 ./upload_files.sh -n 50 -f <file_to_upload> -r <uploaded_file_name>
 ```
 
+Then generate the `large` file used in the load test (which is not included in this repository due to its size):
+
+```bash
+cd locust/to_upload_files
+dd if=/dev/zero of=large bs=1M count=1024
+```
+
+*Remark*: if you want to use a bigger file, feel free to do it, but remember to change the `client_max_body_size` values in [`nginx.conf`](./other-confs/nginx.conf).
 
 Then, you can run the locust test (if you have not installed it yet, you can do it with `pip install locust`):
 

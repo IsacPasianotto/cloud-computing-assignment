@@ -12,7 +12,7 @@ class NextcloudUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_id = None
-        
+
     def on_start(self):
         self.user_id = self.environment.runner.user_count
         
@@ -29,11 +29,6 @@ class NextcloudUser(HttpUser):
             name="Login",
             verify=False  # Disable SSL verification
         )
-        if response.status_code == 200:
-            print(f"User {username} logged in successfully")
-
-        else:
-            print(f"Failed to log in for user {username}")
             
     @task(1)
     def login_scenario(self):

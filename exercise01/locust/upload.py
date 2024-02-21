@@ -31,11 +31,6 @@ class NextcloudUser(HttpUser):
             verify=False
         )
 
-        if response.status_code == 200:
-            print(f"User {username} logged in successfully")
-        else:
-            print(f"Failed to log in for user {username}, tried with password {password}")
-
     def upload_files(self):
         username = f"user{self.user_id}"
         password = f"this_is_a_secure_password_{self.user_id}"
@@ -61,17 +56,9 @@ class NextcloudUser(HttpUser):
                 verify=False,
             )
 
-        if response.status_code == 204:
-            print(f"User {username} uploaded the file {filename} successfully")
-            self.counter += 1
-        else:
-            print(f"Failed to upload the file {filename} for user {username}")
-            print(response.content)
-
     @task(1)
     def upload_scenario(self):
         self.upload_files()
-
 
 # Run the test
 def main():

@@ -143,15 +143,32 @@ All the already mentioned security measures can only guarantee a good security f
 In this case, a critical point is the communication between the user's browser (or client) and the server itself. 
 This is the reason why in the \texttt{docker-compose.yaml} file, the \texttt{caddy} container is used. In fact it automatically manages the SSL certificate, so the communication between the user and the server is encrypted and uses the HTTPS protocol.
 
+\subsubsection{Test of the infrastructure}
+\label{subsubsec:test}
+
+To perform a load test, I've used the \href{https://locust.io/}{\texttt{locust}} testing tool. It is a Python library that allows to define a set of user behaviors and then simulate a large number of users that perform those behaviors.
+
+In the \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main/exercise01/locust/realistic-scenario.py}{\texttt{realistic-scenario.py}} I have defined a set of behaviors that a user can perform which are: 
+
+
+\begin{center}
+    \begin{tabular}{lrl}
+        \hline
+        Task & Probability & Description \\
+        \hline
+        \texttt{upload\_small} & 30\% & Upload a small file: 13.5KB \\
+        \texttt{upload\_medium} & 35\% & Upload a medium file: 42.0MB \\
+        \texttt{upload\_large} & 5\% & Upload a large file: 1.0GB \\
+        \texttt{download} & 30\% & Download the medium file \\
+        \hline
+    \end{tabular}
+\end{center}
+
+I've performed the test on my laptop, which as a \href{https://www.intel.com/content/www/us/en/products/sku/193555/intel-core-i58365u-processor-6m-cache-up-to-4-10-ghz/specifications.html}{Intel Core i5-8365U} CPU and 2$\times$8GB of DDR4 RAM. 
+
 
 \subsection{Costs and technical considerations}
 \label{subsec:costs}
-
-
-
-\subsubsection{Test of the infrastructure}
-\label{subsubsec:test}
-%% load and I/O tests
 
 \subsection{Deployment plans for hypothetical real-world scenario}
 \label{subsec:deployment-real-world}
