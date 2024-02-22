@@ -7,7 +7,12 @@
 
 ## Exercise 2
 
+/exercise02/__pycache__
+/exercise02/k8s-setup/.vagrant/
+
 ## Exercise 3
+/exercise03/__pycache__
+/exercise03/k8s-setup/.vagrant/
 
 ## General
 

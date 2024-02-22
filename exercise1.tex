@@ -26,7 +26,7 @@ The \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main
     \begin{enumerate}
         \itemsep0em
         \item The designed system should handle a growing number of users and files [\ref{subsec:deployment-real-world}]
-        \item A theoretical discussion about the way to increase load and traffic [\ref{subsec:deployment-real-world}, \ref{subsec:costs}]
+        \item A theoretical discussion about the way to increase load and traffic [\ref{subsubsec:approach-independent}]
     \end{enumerate}
 
     \item{Security}
@@ -40,7 +40,7 @@ The \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main
     \item{Cost-effectiveness}
     \begin{itemize}
         \itemsep0em
-        \item Discussion about the costs implications of the designed system and how to optimize them [\ref{subsec:costs}]
+        \item Discussion about the costs implications of the designed system and how to optimize them [\ref{subsubsec:iaas}, \ref{subsubsec:paas}, \ref{subsubsec:saas}, \ref{subsubsec:cloudless}]
     \end{itemize}
 
     \item{Deployment}
@@ -123,7 +123,6 @@ $ echo "yes" | docker exec -i --user www-data nextcloud-app /var/www/html/occ en
 
 \subsubsection{User authentication security}
 Moreover, Nextcloud provides useful features to enhance the security of the user authentication; in the same \textit{Administration Security} section mentioned above, the admin can enable: 
-% avoid to leave empty space between the items
 
 \begin{itemize}
     \itemsep0em
@@ -143,7 +142,9 @@ All the already mentioned security measures can only guarantee a good security f
 In this case, a critical point is the communication between the user's browser (or client) and the server itself. 
 This is the reason why in the \texttt{docker-compose.yaml} file, the \texttt{caddy} container is used. In fact it automatically manages the SSL certificate, so the communication between the user and the server is encrypted and uses the HTTPS protocol.
 
-\subsubsection{Test of the infrastructure}
+\subsection{Test of the infrastructure}
+\label{subsec:test}
+\subsubsection{Load test}
 \label{subsubsec:test}
 
 To perform a load test, I've used the \href{https://locust.io/}{\texttt{locust}} testing tool. It is a Python library that allows to define a set of user behaviors and then simulate a large number of users that perform those behaviors.
@@ -164,14 +165,165 @@ In the \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/m
     \end{tabular}
 \end{center}
 
-I've performed the test on my laptop, which as a \href{https://www.intel.com/content/www/us/en/products/sku/193555/intel-core-i58365u-processor-6m-cache-up-to-4-10-ghz/specifications.html}{Intel Core i5-8365U} CPU and 2$\times$8GB of DDR4 RAM. 
+I've performed the test on my laptop, which as a \href{https://www.intel.com/content/www/us/en/products/sku/193555/intel-core-i58365u-processor-6m-cache-up-to-4-10-ghz/specifications.html}{Intel Core i5-8365U} CPU and 2$\times$8GB of DDR4 RAM.
+Locust was set to spawn a user each second, up to a given upper limit, and at each second, for all the currently spawned users, try to perform one of the above tasks.
 
+It toured out that my hardware was able to handle up to 20 users without any issue, but when the number of users was increased to 30, the system started to show the "\textit{429: Too Many Requests}" error\footnote{It's also worth to be mentioned that warning about usage over 90\% of the CPU.}, see \hyperref[fig:locust-load-tests]{Figure \ref{fig:locust-load-tests}}. 
 
-\subsection{Costs and technical considerations}
-\label{subsec:costs}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{./images/ex1/20-users.png}
+        \caption{Load test with 20 users, no failures are reported}
+        \label{fig:locust-20-users}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{./images/ex1/30-users.png}
+        \caption{Load test with 30 users, failures start to appear as all the users are spawned}
+        \label{fig:locust-30-users}
+    \end{subfigure}
+    \caption{Comparison of load tests with different user counts}
+    \label{fig:locust-load-tests}
+\end{figure}
+
+\subsubsection{I/O test}
+\label{subsubsec:test}
+
+To asses the I/O traffic, I've used the \href{https://docs.docker.com/config/containers/runmetrics/}{\texttt{docker stats}} tool, which provides a real-time view of the CPU, memory, network, and disk I/O usage of the running containers.
+During the load test reported in the \hyperref[fig:locust-load-tests]{Figure \ref{fig:locust-load-tests}}, the I/O traffic was monitored in this way. The result is shown in \hyperref[fig:docker-stats]{Figure \ref{fig:docker-stats}}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=\linewidth]{./images/ex1/newspawedIO}
+        \caption{Situation at newly spawned containers}
+        \label{fig:newspawedIO}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=\linewidth]{./images/ex1/20usersIO}
+        \caption{20 users performing 1 action per second, 60 seconds}
+        \label{fig:20usersIO}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=\linewidth]{./images/ex1/30usersIO}
+        \caption{30 users performing 1 action per second, 60 seconds}
+        \label{fig:30usersIO}
+    \end{subfigure}
+    \caption{I/O traffic during the load test}
+    \label{fig:docker-stats}
+\end{figure}
+
+We can see that the container which are most stressed are the proxy the web server and the nextcloud app, which is the one that handles requests
+The database server is not stressed. This can be explained by the fact that the database is used to store the metadata of the files, and not the files themselves, so the I/O traffic is lower. 
 
 \subsection{Deployment plans for hypothetical real-world scenario}
 \label{subsec:deployment-real-world}
 
-\subsection{Conclusions}
-\label{subsec:conclusions}
+In a real-world scenario, the requirements of the system will be much higher than the one of the test, but also the resources available will be much higher.
+In order to scale this solution to a production scenario some paths can be followed. 
+
+\subsubsection{Approach-independent considerations}
+\label{subsubsec:approach-independent}
+
+Imaging a much higher traffic, some primary considerations can be made: 
+first of all, some of the containers can be scaled vertically (i.e. increase the resources available to the container), for example the \texttt{redis} container, which is used as a cache server, in this way the cache hit rate will be increased, and the communication with the database will be reduced.
+Also the \texttt{caddy} container can be scaled vertically, in order to handle more SSL connections.
+
+Moreover adding a container that acts as a load balancer can be a good idea, in this way the traffic will be distributed among the different containers, allowing to scale horizontally the other containers which are more stressed.
+If a load balancer is used, more than one instance of the \texttt{nextcloud} and \texttt{nginx} containers can be used, allowing to scale horizontally the system distributing the traffic among the different instances.
+Finally, also the database can be scaled horizontally, in order to handle more requests and to guarantee more reliability.
+
+In addition to that, an evaluation about the trade-off between security and performance should be made. The server-side encryption can be disabled, in order to reduce the CPU usage, but this will reduce the security of the system. The possibility of disabling it and leave to the users the responsibility of encrypting the files which must be kept secret should be evaluated.
+
+\subsubsection{Cloudless approach}
+\label{subsubsec:cloudless}
+Assuming that the organization has its own data center, the system can be deployed on it. 
+
+\textit{Advantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The organization has full control over the infrastructure;
+    \item The costs are fully predictable, easier to manage and optimize; 
+    \item The data are stored in the organization's data center, so the organization has full control over them.
+    \item The organization does not have to rely on a third-party organization and adopt its own policies, procedures and security measures.
+\end{itemize}
+\textit{Disadvantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The organization has to manage the infrastructure, which can be complex and expensive;
+    \item The organization has to manage the security of the infrastructure, which can be complex and expensive;
+    \item The organization must take care of the scalability of the project all by itself.
+    \item The initial investment to purchase the hardware can be high.
+\end{itemize}
+
+\subsubsection{IaaS approach}
+\label{subsubsec:iaas}
+Assuming that the organization does not have its own data center, and considering the cost of acquiring and maintaining it too high, the system can be deployed on a cloud provider. 
+
+In the case of \textit{Infrastructure as a Service} (IaaS) approach, the organization can rent the resources needed with the "pay as you go" model. 
+Still on the organization to manage the rented resources, install and configure the system to run the wanted software.
+
+\textit{Advantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The organization does not have to invest in hardware;
+    \item The scale-up and scale-down of the resources is easy and fast;
+    \item The organization does not have to manage the physical infrastructure, which can be complex and expensive;
+    \item The provider can offer a object storage service, that is a reliable and scalable way to store the files which offers also backup and disaster recovery features.
+\end{itemize}
+\textit{Disadvantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The price of the resources could be less predictable; 
+    \item The renter may increase the price of the resources;
+    \item The organization still to take care of the security of the system it is running;
+    \item There are risks leaved to the provider the organization has to rely on (eg. Network, "zero-day" vulnerabilities for the hypervisor, etc.);
+    \item The data are not physically stored in the organization's data center;
+\end{itemize}
+
+\subsubsection{PaaS approach}
+\label{subsubsec:paas}
+In this case (\textit{Platform as a Service}), the organization can rent a platform where the vendor takes care of the hardware infrastructure, but also to installing and configuring the software.
+In this scenario, theoretically, the organization just needs to manage the application and the data, and the vendor will take care of the rest.
+
+\textit{Advantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The organization does not have to invest in hardware and in time to configure it to properly run the software;
+    \item The organization need to manage only the application and the data;
+    \item Most of the security measures which are needed are on the vendor side;
+    \item The organization can rely on the vendor to take care of the scalability of the system.
+\end{itemize}
+\textit{Disadvantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The more the vendor takes care of, the more you pay: this solution should be the more expensive w.r.t. the IaaS and cloudless approach;
+    \item The more the vendor takes care of, the less control the organization has over the infrastructure, and the more it has to trust the vendor for the security concerns;
+    \item The data are not physically stored in the organization's data center;
+\end{itemize}
+
+\subsubsection{SaaS approach}
+\label{subsubsec:saas}
+Finally, the organization can rent a software as a service. In this case the organization does not have to manage anything, just to use the software with the features provided by the vendor and pay for it.
+
+\textit{Advantages}:
+\begin{itemize}
+    \itemsep0em
+    \item The organization does not have to invest in hardware and in time to configure it to properly run the software;
+    \item The organization does not have to manage the application and the data, which can be time-consuming and expensive;
+    \item The organization does not have to manage the security of the system;
+    \item The organization does not have to manage the scalability of the system;
+\end{itemize}
+\textit{Disadvantages}:
+\begin{itemize}
+    \item Probably the most expensive solution;
+    \item The organization has no control (and probably no knowledge) about the infrastructure and the security measures;
+    \item The organization must completely rely on the vendor for the security and the reliability of the system;
+\end{itemize}
+
+
+
+
+% \subsection{Conclusions}
+% \label{subsec:conclusions}
