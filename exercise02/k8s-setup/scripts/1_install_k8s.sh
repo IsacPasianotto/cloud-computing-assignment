@@ -100,6 +100,9 @@ EOF
 
 ########     REMOVE THE TAIN     ########
 
-
-
 sudo kubectl taint nodes --all  node-role.kubernetes.io/control-plane-
+
+
+######       INSTALL HELM       ######
+
+dnf install -y helm

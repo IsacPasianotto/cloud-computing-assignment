@@ -27,6 +27,8 @@ Vagrant.configure("2") do |config|
                         :args => [ conf[:ip] ]
       node.vm.provision :shell,
                         :path => './scripts/1_install_k8s.sh'
+      node.vm.provision :shell,
+                        :path => './scripts/1bis_kubectl_nonroot.sh'
 
     end
   end
