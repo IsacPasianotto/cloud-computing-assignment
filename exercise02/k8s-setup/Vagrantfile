@@ -1,6 +1,12 @@
 servers = [
-  { :hostname => "ex2-00", :ip => "192.168.133.50" },
-  # { :hostname => "ex2-01", :ip => "192.168.133.51" },
+  { :hostname => "ex2", :ip => "192.168.132.50" },
+  # { :hostname => "ex2-01", :ip => "192.168.132.51" },
+]
+
+scripts = [
+  './scripts/00_bash_common_provisioning.sh',
+  './scripts/01_install_k8s.sh',
+  './scripts/02_other_conveniences.sh',
 ]
 
 Vagrant.configure("2") do |config|
@@ -22,14 +28,12 @@ Vagrant.configure("2") do |config|
       node.vm.network :private_network,
                       :libvirt__network_name => 'ex2-net'
 
-      node.vm.provision :shell, 
-                        :path => './scripts/0_bash_common_provisioning.sh',
-                        :args => [ conf[:ip] ]
-      node.vm.provision :shell,
-                        :path => './scripts/1_install_k8s.sh'
-      node.vm.provision :shell,
-                        :path => './scripts/1bis_kubectl_nonroot.sh'
-
+      scripts.each do |script|
+        node.vm.provision :shell,
+                          :path => script,
+                          :args => [conf[:ip]] # needed to the 00_bash_common_provisioning
+      end
     end
   end
 end
+

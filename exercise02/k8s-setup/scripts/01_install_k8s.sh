@@ -5,12 +5,13 @@
 #     The original tutorial can be found at: 
 #     https://github.com/Foundations-of-HPC/Cloud-advanced-2023/blob/main/live-demos/kubernetes/0-kube-installation/notes.org
 
+
+
 # Login as root, as some of the commands require root access
 sudo su 
 
 
 ########   PRELIMINARY STEPS   ########
-
 
 
 # Load the modules for the container runtime
@@ -73,36 +74,17 @@ kubeadm init --pod-network-cidr=10.17.0.0/16
 # --services-cidr=10.96.0.0/12 /default
 # --control-plane-endpoint 192.168.132.80 /needed for HA
 
-# temporary log-out 
-su vagrant
-
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-alias k=kubectl
-
-########     INSTALL K9S     ########
-
-cd /tmp
-wget https://github.com/derailed/k9s/releases/download/v0.28.2/k9s_Linux_amd64.tar.gz
-tar -xvf k9s_Linux_amd64.tar.gz
-chmod +x k9s
-sudo mv k9s /usr/local/bin
-
-cd ~
-cat << EOF | tee -a /home/vagrant/.bashrc
-EDITOR=vim
-alias k=kubectl
-source <(kubectl completion bash)
-EOF
-
-
 
 ########     REMOVE THE TAIN     ########
 
 sudo kubectl taint nodes --all  node-role.kubernetes.io/control-plane-
 
 
-######       INSTALL HELM       ######
+########     CONFIGURE kubectl    ########
 
-dnf install -y helm
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+alias k=kubectl
+
+
