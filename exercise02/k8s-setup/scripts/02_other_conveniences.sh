@@ -30,4 +30,10 @@ EOF
 dnf install -y helm
 
 
+######      INSTALL OTHER TOOLS      ######
+
+
+sudo dnf install -y bat htop tmux curl git zsh util-linux-user 
+
+# sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 

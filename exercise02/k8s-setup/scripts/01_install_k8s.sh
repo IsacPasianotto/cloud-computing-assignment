@@ -65,20 +65,14 @@ dnf install -y crio kubelet kubeadm kubectl --disableexcludes=kubernetes
 
 # Enable and start the services
 
-sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
+# sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
 systemctl enable --now crio
 systemctl enable --now kubelet
 
 
 kubeadm init --pod-network-cidr=10.17.0.0/16
-# --services-cidr=10.96.0.0/12 /default
-# --control-plane-endpoint 192.168.132.80 /needed for HA
-
-
-########     REMOVE THE TAIN     ########
-
-sudo kubectl taint nodes --all  node-role.kubernetes.io/control-plane-
-
+  --services-cidr=10.96.0.0/12 
+  --control-plane-endpoint 192.168.132.80
 
 ########     CONFIGURE kubectl    ########
 
@@ -87,4 +81,13 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 alias k=kubectl
 
+############   OTHERS  ############
 
+# Directories needed to the presented configuration
+mkdir -p /home/vagrant/pvs
+mkdir -p /home/vagrant/pvs/nextcloud
+mkdir -p /home/vagrant/pvs/postgres
+mkdir -p /home/vagrant/pvs/redis
+
+
+sudo chown -R vagrant:vagrant /home/vagrant/pvs

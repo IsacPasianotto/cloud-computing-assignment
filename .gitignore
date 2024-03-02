@@ -9,6 +9,8 @@
 
 /exercise02/__pycache__
 /exercise02/k8s-setup/.vagrant/
+/exercise02/k8s-setup/backup/
+
 
 ## Exercise 3
 /exercise03/__pycache__
