@@ -1,0 +1,24 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nextcloud-tls
+  namespace: nextcloud
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer: "selfsigned-issuer"
+spec:
+  secretName: nextcloud-tls
+  duration: 2160h      # 90 days
+  renewBefore: 360h    # 15 days
+  commonName: nextcloud.example.com
+  isCA: true
+  issuerRef:
+    name: selfsigned-issuer
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}

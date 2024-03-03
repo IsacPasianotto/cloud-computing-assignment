@@ -19,13 +19,11 @@ ingress:
   enabled: true
   annotations:
     nginx.ingress.kubernetes.io/cors-allow-headers: "X-Forwarded-For"
-    metallb.universe.tf/address-pool: ip-addr-pool
-    # ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: 4G
-    # kubernetes.io/tls-acme: "true"
-    # cert-manager.io/issuer: "letsencrypt-staging"
-    cert-manager.io/issuer: "selfsigned-issuer"
-    # nginx.ingress.kubernetes.io/enable-cors: "true"
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer: "selfsigned"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/server-snippet: |-
        server_tokens off;
        proxy_hide_header X-Powered-By;
@@ -53,13 +51,12 @@ ingress:
   className: nginx
   path: / 
   hosts:
-    - nextcloud.kube.home
-    - localhost
+    - nextcloud.example.com
   servicePort: https
   tls:
     - secretName: nextcloud-tls
       hosts:
-        - nextcloud.kube.home
+        - nextcloud.example.com
   
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/
 lifecycle: {}
@@ -71,7 +68,7 @@ phpClientHttpsFix:
   protocol: https
 
 nextcloud:
-  host: nextcloud.kube.home
+  host: nextcloud.example.com
   existingSecret:
     enabled: true
     secretName: nextcloud-credentials

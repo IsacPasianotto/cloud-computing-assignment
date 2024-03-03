@@ -1,16 +1,14 @@
-# Exercise 2
+# Solution for the `Cloud-advanced` module first assignment.
+
+This folder contains the provided solution for the first [`Cloud-advanced` module assignment](https://github.com/Foundations-of-HPC/Cloud-advanced-2023/blob/main/Assignments/Exercise.md). 
+
+The assignment file I've considered (it may be changed after this solution is published) is also available in the [assignment.md](./assignment.md) file. 
 
 
 ## Prerequisites
 
-Only the basic tools to run a VM are required. 
-In particular, you need to have installed:
+The only prerequisites should be the basic virtualization tools and  `Vagrant` with the respective dependencies.
 
-- `Vagrant`
-- `libvirt`
-
-
-with they respective dependencies.
 Since the VM is created using `libvirt`, you'll need also the vagrant plugin `vagrant-libvirt`:
 
 ```
@@ -19,7 +17,7 @@ vagrant plugin install vagrant-libvirt
 
 ## Setup the VM
 
-First of all, you need to create the VM which will be used for this exercise. 
+First of all, you need to create the VM which will be used for this exercise. In the [`k8s-setup`](./k8s-setup/) directory, you will find the `Vagrantfile` and all the needed files to define the network and provision the VM.
 
 ```
 cd k8s-setup 
@@ -34,7 +32,7 @@ Once the VM is up and running, you will need to ssh into it, then you will file 
 
 ```bash
 vagrant ssh ex2-00
-cd nextcloud-helm&yaml
+cd nextcloud-helm\&yaml
 ```
 
 Now in order to have the nextcloud instance up and running, you need to follow the steps below:
@@ -89,20 +87,28 @@ kubectl apply -f postgres-pvc.yaml -n nextcloud
 
 ### 4. Certificates
 
-in the `certificates` directory, you will find the files needed to create the certificates for the `nextcloud` instance.
+Install the `cert-manager`
 
-Create the certificates using the following command (important, the `Common Name` must be the same as the `hostname` of the VM, in this case `nextcloud.kube.home`)
-
-```bash
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ex2-00.key -out ex2-00.crt
 ```
-Then create the `secret` using the following command:
+kubectl create namespace cert-manager
 
-```bash
-kubectl create secret tls nextcloud-tls --cert=ex2-00.crt --key=ex2-00.key
-kubectl create secret tls nextcloud-tls --cert=ex2-00.crt --key=ex2-00.key -n nextcloud 
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.yaml
 ```
 
+and install the `kubectl plugin`:
+
+```
+cd ../certificates
+
+curl -L -o kubectl-cert-manager.tar.gz https://github.com/jetstack/cert-manager/releases/latest/download/kubectl-cert_manager-linux-amd64.tar.gz
+
+tar xzf kubectl-cert-manager.tar.gz
+sudo mv kubectl-cert_manager /usr/local/bin
+```
+
+```
+kubectl apply -f certificate.yaml -n nextcloud
+```
 
 ### 5. Create the `secret`s needed
 
@@ -136,13 +142,41 @@ helm repo add nextcloud https://nextcloud.github.io/helm/
 helm repo update
 
 helm install my-nextcloud-instance nextcloud/nextcloud -f values.yaml -n nextcloud
-
-kubectl wait --for=condition=available --timeout=600s deployment/my-nextcloud-instance-nextcloud -n nextcloud
 ```
 
+## Access the nextcloud instance
+
+You can access the nextcloud instance searching for the `external-ip` of the service `my-nextcloud-instance-nextcloud`:
+
+For example: 
+
+```
+[vagrant@ex2-00 ~]$ kubectl get svc -n nextcloud
+NAME                                   TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)          AGE
+my-nextcloud-instance                  LoadBalancer   10.100.237.26    192.168.121.201   8080:32019/TCP   6m55s
+my-nextcloud-instance-metrics          LoadBalancer   10.110.211.136   192.168.121.202   9205:31706/TCP   6m55s
+my-nextcloud-instance-postgresql       ClusterIP      10.107.223.55    <none>            5432/TCP         6m55s
+my-nextcloud-instance-postgresql-hl    ClusterIP      None             <none>            5432/TCP         6m55s
+my-nextcloud-instance-redis-headless   ClusterIP      None             <none>            6379/TCP         6m55s
+my-nextcloud-instance-redis-master     ClusterIP      10.102.236.232   <none>            6379/TCP         6m55s
+
+[vagrant@ex2-00 ~]$ kubectl port-forward service/my-nextcloud-instance 8080:8080 --address 0.0.0.0 -n nextcloud
+```
+
+In this case, the `external-ip` of the `my-nextcloud-instance` service is `192.168.121.201` and executing a port-forwarding on the `8080` port to the whatever port in the host machine: 
+
+```
+export guest_ip=$(vagrant ssh-config $(vagrant global-status | awk '/ex2-00/ {print $1}') | awk '/HostName/ {print $2}')
+export guest_port=8080
+export host_port=8080
+
+ssh vagrant@$guest_ip -L $host_port:$guest_ip:$guest_port -i ./ssh/id_rsa
+```
+
+and finally, you can access through the browser at `http://localhost:8080`
 
 
-## NOTES:
+***Some notes:***
 
 - Why postresql and not mariadb? see [this bug](https://github.com/nextcloud/helm/issues/506)
 
@@ -151,4 +185,4 @@ kubectl wait --for=condition=available --timeout=600s deployment/my-nextcloud-in
 - If you change the `hostname` of the vagrant machine, you need to update the `*-pv.yaml` files with the new hostname in the `volumes` directory
 
 
-- If you use a different `namespace`, remeber to update the `metrics.ServiceMonitor.namespace` and `metrics.ServiceMonitor.namespaceSelector` values in the `values.yaml` file. 
+- If you use a different `namespace`, remember to update the `metrics.ServiceMonitor.namespace` and `metrics.ServiceMonitor.namespaceSelector` values in the `values.yaml` file. 

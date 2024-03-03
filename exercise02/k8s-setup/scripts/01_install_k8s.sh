@@ -43,8 +43,7 @@ sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 
 # Install the required packages
-dnf install -y iproute-tc wget vim bash-completion bat \
-    podman  
+dnf install -y iproute-tc wget vim bash-completion bat
 
 ########     K8S INSTALLATION     ########
 
@@ -65,7 +64,7 @@ dnf install -y crio kubelet kubeadm kubectl --disableexcludes=kubernetes
 
 # Enable and start the services
 
-# sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
+sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
 systemctl enable --now crio
 systemctl enable --now kubelet
 

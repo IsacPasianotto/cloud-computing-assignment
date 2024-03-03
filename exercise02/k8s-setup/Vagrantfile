@@ -10,10 +10,8 @@ scripts = [
 ]
 
 Vagrant.configure("2") do |config|
-  # fedora39 caused some issues with the k8s installation
-  config.vm.box = "fedora/38-cloud-base"
-  config.vm.box_version = "38.20230413.1"
-
+  config.vm.box = "fedora/39-cloud-base"
+  
   config.vm.provider :libvirt do |lv|
     lv.qemu_use_session = false
     lv.memory = 4096
@@ -31,8 +29,6 @@ Vagrant.configure("2") do |config|
       node.vm.network :private_network,
                       :libvirt__network_name => 'ex2-net'
 
-      # node.vm.network :forwarded_port, guest: 80, host: 8080
-
       scripts.each do |script|
         node.vm.provision :shell,
                           :path => script,
@@ -42,6 +38,8 @@ Vagrant.configure("2") do |config|
       node.vm.provision :shell,
                         :inline => "kubectl taint nodes --all node-role.kubernetes.io/control-plane-",
                         :privileged => false
+
+      node.vm.provision :file, source: "../nextcloud-helm&yaml", destination: "/home/vagrant/"
     end
   end
 end
