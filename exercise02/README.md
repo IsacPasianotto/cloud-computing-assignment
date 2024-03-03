@@ -87,12 +87,47 @@ kubectl apply -f postgres-pvc.yaml -n nextcloud
 
 
 
-### 4. Install `cert-manager`
+### 4. Certificates
 
-***TODO***
+in the `certificates` directory, you will find the files needed to create the certificates for the `nextcloud` instance.
+
+Create the certificates using the following command (important, the `Common Name` must be the same as the `hostname` of the VM, in this case `nextcloud.kube.home`)
+
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ex2-00.key -out ex2-00.crt
+```
+Then create the `secret` using the following command:
+
+```bash
+kubectl create secret tls nextcloud-tls --cert=ex2-00.crt --key=ex2-00.key
+kubectl create secret tls nextcloud-tls --cert=ex2-00.crt --key=ex2-00.key -n nextcloud 
+```
 
 
-### 5. Install `nextcloud`
+### 5. Create the `secret`s needed
+
+Modify the values of the following secrets as you prefer:
+
+
+```bash
+kubectl create secret generic -n nextcloud nextcloud-credentials \
+  --from-literal=username=admin \
+  --from-literal=password=changeme \
+  --from-literal=nextcloud-token=vVjGFYXE14 
+
+kubectl create secret generic -n nextcloud postgres-credentials \
+  --from-literal=db-name=nextcloud \
+  --from-literal=db-user=nextcloud \
+  --from-literal=db-password=changeme \
+  --from-literal=db-root-password=changeme 
+
+kubectl create secret generic -n nextcloud redis-credentials \
+  --from-literal=redis-password=changeme
+```
+
+
+
+### 6. Install `nextcloud`
 
 ```bash
 cd .. # go back to the exercise directory

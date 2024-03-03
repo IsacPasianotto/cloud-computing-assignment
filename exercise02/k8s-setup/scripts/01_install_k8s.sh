@@ -87,7 +87,6 @@ alias k=kubectl
 mkdir -p /home/vagrant/pvs
 mkdir -p /home/vagrant/pvs/nextcloud
 mkdir -p /home/vagrant/pvs/postgres
-mkdir -p /home/vagrant/pvs/redis
 
 
 sudo chown -R vagrant:vagrant /home/vagrant/pvs
