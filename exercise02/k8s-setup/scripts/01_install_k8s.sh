@@ -70,8 +70,6 @@ systemctl enable --now kubelet
 
 
 kubeadm init --pod-network-cidr=10.17.0.0/16
-  --services-cidr=10.96.0.0/12 
-  --control-plane-endpoint 192.168.132.80
 
 ########     CONFIGURE kubectl    ########
 

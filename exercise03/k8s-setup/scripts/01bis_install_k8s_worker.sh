@@ -73,8 +73,12 @@ alias k=kubectl
 
 # The join command is provided by the master node
 export ipmaster=192.168.132.60
-scp -o StrictHostKeyChecking=no root@$ipmaster:/root/kubejoin.sh /root
-/root/kubejoin.sh
+scp -o StrictHostKeyChecking=no root@$ipmaster:/root/kubejoin_command.sh /root
+/root/kubejoin_command.sh
+
+
+
+############# TODO --> This must be done by hand ################
 
 # after the join, the node will be in NotReady state
 # the master node will have to approve the request
@@ -84,10 +88,10 @@ scp -o StrictHostKeyChecking=no root@$ipmaster:/root/kubejoin.sh /root
 # then run `kubectl get nodes` again to see the new nodes in Ready state
 # the new nodes will be in the NotReady state until the master node approves the requests
 
-ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
-ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get csr"
-ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl certificate approve <csr-name>"
-ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
+# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
+# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get csr"
+# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl certificate approve <csr-name>"
+# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
 
 # kubeadm init --pod-network-cidr=10.17.0.0/16
 # --services-cidr=10.96.0.0/12 /default
@@ -95,5 +99,31 @@ ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
 # temporary log-out 
 
 # label the current node as worker
-kubectl label node $(hostname) node-role.kubernetes.io/worker=worker
+# kubectl label node $(hostname) node-role.kubernetes.io/worker=worker
 
+
+
+########     INSTALL K9S     ########
+
+cd /tmp
+wget https://github.com/derailed/k9s/releases/download/v0.28.2/k9s_Linux_amd64.tar.gz
+tar -xvf k9s_Linux_amd64.tar.gz
+chmod +x k9s
+sudo mv k9s /usr/local/bin
+
+cat << EOF | tee -a /home/vagrant/.bashrc
+EDITOR=vim
+alias k=kubectl
+source <(kubectl completion bash)
+EOF
+
+
+######       INSTALL HELM       ######
+
+sudo dnf install -y helm
+
+
+######      INSTALL OTHER TOOLS      ######
+
+
+sudo dnf install -y bat htop tmux curl git zsh util-linux-user

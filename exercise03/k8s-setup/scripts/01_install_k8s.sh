@@ -69,12 +69,10 @@ systemctl enable --now crio
 systemctl enable --now kubelet
 
 
-kubeadm init --pod-network-cidr=10.17.0.0/16
-  --services-cidr=10.96.0.0/12 
-  --control-plane-endpoint 192.168.132.80 > /root/kubeinit.log
+kubeadm init --pod-network-cidr=10.17.0.0/16 > /root/kubeinit.log
 
-cat /root/kubeinit.log | grep -A 1 "kubeadm join" > /root/kubejoin.sh
-chmod +777 /root/kubejoin.sh
+cat /root/kubeinit.log | grep -A 1 "kubeadm join" > /root/kubejoin_command.sh
+chmod +777 /root/kubejoin_command.sh
 
 
 ########     CONFIGURE kubectl    ########

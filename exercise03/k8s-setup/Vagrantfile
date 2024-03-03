@@ -13,7 +13,6 @@ controlpscripts = [
 scripts = [
   './scripts/00_bash_common_provisioning.sh',
   './scripts/01bis_install_k8s_worker.sh',
-  './scripts/02_other_conveniences.sh',
 ]
 
 Vagrant.configure("2") do |config|
@@ -47,7 +46,10 @@ Vagrant.configure("2") do |config|
         end
         # taint the control-plane node
         node.vm.provision :shell,
-                          :inline => "kubectl taint nodes #{conf[:hostname]} node-role.kubernetes.io/control-plane-",
+                          :inline => "kubectl wait --for=condition=Ready node/ex3-00 --timeout=300s",
+                          :privileged => false
+        node.vm.provision :shell,
+                          :inline => "kubectl taint nodes ex3-00 node-role.kubernetes.io/control-plane-",
                           :privileged => true
       else
         scripts.each do |script|
