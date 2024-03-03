@@ -12,8 +12,6 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   local:
     path: /home/vagrant/pvs/postgres
-  # hostPath:
-  #   path: /home/vagrant/pvs/nextcloud
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -22,6 +20,3 @@ spec:
           operator: In
           values:
           - ex2-00
-
-  # local --> node-specific configuration for a pod 
-  # hostPath --> share the same volume among pods on the same node

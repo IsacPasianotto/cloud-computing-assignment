@@ -172,14 +172,12 @@ export host_port=8080
 
 ssh vagrant@$guest_ip -L $host_port:$guest_ip:$guest_port -i ./ssh/id_rsa
 ```
+the password for the `vagrant` user is `vagrant`. 
 
-and finally, you can access through the browser at `http://localhost:8080`
+Finally, you can access through the browser at `http://localhost:8080`
 
 
 ***Some notes:***
-
-- Why postresql and not mariadb? see [this bug](https://github.com/nextcloud/helm/issues/506)
-
 
 
 - If you change the `hostname` of the vagrant machine, you need to update the `*-pv.yaml` files with the new hostname in the `volumes` directory

@@ -1,0 +1,159 @@
+\section{Exercise 2}
+
+\subsection{Requirements}
+\label{subsec:requirements}
+
+For the \textit{advanced module} of the course, the assignment was to redeploy the services from the previous exercise, but using \href{https://kubernetes.io/}{\textit{kubernetes}} and \href{https://helm.sh/}{\textit{helm}}.
+In particular it was required to create a \textit{one-node} kubernetes cluster using \texttt{k8s} and deploy the services using \texttt{helm}. 
+The service must be accessible from IP or FQDN, and eventual database or third-party services must run in their own pods.
+
+\subsection{Solution}
+
+The solution is based on the \href{https://github.com/nextcloud/helm/tree/main/charts/nextcloud}{official nextcloud helm chart} which is a \textit{community maintained} that comes with almost all the feature needed for this exercise. 
+This chart relies on the \href{https://bitnami.com/}{Bitnami} \texttt{PostgreSQL}, \texttt{Redis} charts.
+The difference in the structure between the kubernetes-based solution and the previous one are the following: 
+
+\begin{itemize}
+    \itemsep0em
+    \item The external database is now a \texttt{PostgreSQL} instance instead of \texttt{mariadb}. This is done due to an \href{https://github.com/nextcloud/helm/issues/506}{issue} with mariadb and the nextcloud helm chart unresolved at the time of writing.
+    \item The access to Nextcloud is now done through a \href{https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/}{\texttt{Kubernetes service}}\footnote{I've \
+        considered also the \href{https://kubernetes.io/docs/concepts/services-networking/ingress/}{Ingress API} and tried to implement it. \
+        Viewing the logs it seems that traffic correctly goes though it, but I was not able to get rid of \texttt{404} error. \
+        Another possible solution (not tested) were to use the \href{https://kubernetes.io/docs/concepts/services-networking/gateway/}{\texttt{Gateway API}}, which is meant to be a replacement for the Ingress API which is flagged as \textit{frozen}.} \ 
+        instead of using \texttt{Caddy} as a reverse proxy. The service is exposed thanks to the \href{https://metallb.org/}{MetalLB} load balancer, which allows to expose the service assigning them an external IP.
+\end{itemize}
+
+For this exercise, I've created the kubernetes cluster using a virtual machine with \texttt{vagrant}.
+
+
+\subsection{PV and PVC}
+
+In order to persist the data, and to avoid data loss in case of pod deletion or crash (Pods-crash proof was a requirement), I've used a \texttt{PersistentVolume} claimed by pods using a \texttt{PersistentVolumeClaim} for both the \texttt{PostgreSQL} and the \texttt{Nextcloud} pods.
+
+\begin{lstlisting}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: nextcloud-pv
+spec:
+    capacity:
+    storage: 5Gi
+    volumeMode: Filesystem
+    storageClassName: local-path
+    accessModes:
+    - ReadWriteMany
+    persistentVolumeReclaimPolicy: Recycle
+    local:
+    path: /home/vagrant/pvs/nextcloud
+    nodeAffinity:
+    required:
+        nodeSelectorTerms:
+        - matchExpressions:
+        - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - ex2-00
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path
+\end{lstlisting}
+
+\subsubsection{Limitation of the back-end storage choice}
+
+The \texttt{local-path} storage simply maps a directory on the host machine to a volume in the pod.
+This is the simplest way to provide a persistent storage, but it has some limitations, in particular: 
+
+\begin{itemize}
+    \itemsep0em
+    \item \textit{Single point of failure}: If the host machine fails, the data is lost.
+    \item \textit{No redundancy}: Out of the box no redundancy is provided, if the storage unit which provides the directory fails, the data is lost.
+    \item \textit{Force pod to run on a specific node}: The pods which relies on those PVs must run on the same node which provides the storage (set in the \texttt{nodeAffinity} field).
+    \item \textit{No dynamic provisioning}: The PVs must be created manually.
+    \item \textit{No scalability}: The storage is upper-bounded by the capacity of the host machine.
+\end{itemize}
+
+A possible improvement could be to use a \texttt{NFS} server to provide the storage among all the nodes of the cluster. 
+
+
+\subsection{Steps to be taken to have high availability}
+
+In order to have high availability, the following steps must be taken:
+
+\begin{itemize}
+    \itemsep0em
+    \item \textit{Multi-node cluster}: Using a multi-node cluster, the pods can be scheduled on different nodes, so that if a node fails, the pods can be rescheduled on another node. This does not come for free, as it requires a more solution for the PVs, as mentioned in the previous section.
+    \item \textit{Database replication}: The database can be distributed among different nodes
+    \item \textit{Pod anti-affinity}: Pods can be scheduled on different nodes, this both ensures high availability and could improve the performance (pod replicas are not meant to communicate with each other, so there is a better distribution of the computation load with no communication overhead).
+\end{itemize}
+
+Note that the Nextcloud helm chart already provides a \texttt{replica} field, which can be set to a value greater than 1 to have multiple replicas of the same pod. Moreover it comes also with the \href{https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/}{Horizontal Pod Autoscaler} which can be used to automatically scale the number of pods based on CPU or memory usage. This can be useful, since as said in the previous exercise,
+enabling the server-side encryption can be CPU intensive, Spawning more pods can help to distribute the load.
+
+
+\subsection{Advantages and disadvantages of the kubernetes-based solution}
+
+Some of the advantages of the kubernetes-based solution are the following:
+
+\begin{itemize}
+    \itemsep0em
+    \item \textit{Scalability}: The solution can be easily scaled by adding more nodes to the cluster, or by adding more replicas of the pods.
+    \item \textit{High availability}: The solution can be made highly available by using a multi-node cluster and by using the \texttt{replica} field of the helm chart. 
+    \item \textit{Resource management}: The kubernetes scheduler can be used to distribute the pods among the nodes, and the \href{https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/}{Horizontal Pod Autoscaler} can be used to automatically scale the number of pods based on CPU or memory usage.
+\end{itemize}
+
+Some of the disadvantages of the kubernetes-based solution are the following:
+
+\begin{itemize}
+    \itemsep0em
+    \item \textit{Minimum requirements}: Compared to the docker approach which has no minimum requirements, to run kubernetes a minimum of 2GB of RAM and 2-core CPU is required.
+    \item \textit{Complexity}: The kubernetes-based solution is more complex to set up. 
+    \item \textit{Software stack}: Kubernetes is a newer technology, and it is not as mature as docker, lots of API or features are still in beta state (eg. MetalLB) or can be flagged as \textit{frozen} (eg. Ingress API). Keeping up with the latest changes can be more challenging.
+\end{itemize}
+
+ 
+\subsection{General schema of the solution}
+
+As previously said, the solution is based on the official nextcloud helm chart, which was used in combination with a well-defined set of values reported in the \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/main/exercise02/nextcloud-helm%26yaml/values.yaml}{\texttt{values.yaml}} file.
+
+Following the \href{https://github.com/IsacPasianotto/cloud-computing-assignment/tree/main/exercise02}{README.md} instructions, the final result will be the following: 
+
+\begin{itemize}
+    \itemsep0em
+    \item The access is balanced by MetalLB  and the service is exposed through an external IP.
+    \item Once the service is reached, the traffic is redirected to one of the nextcloud pods.
+    \item Each nextcloud pod is composed by three containers: 
+        \begin{itemize}
+            \itemsep0em
+            \item The nextcloud application
+            \item A sidecar container which is used to run cron jobs
+            \item A container for the nginx web server
+        \end{itemize}
+    \item All the nextcloud pods are connected to the same PVC, which is used to persist the data.
+    \item The nextcloud pods are connected to the PostgreSQL database, which resides in its own pod and is connected to its own PVC.
+    \item A Redis pod is used to cache the data, no PVC is used for this pod since in case of crash the application still works, even if slower until the cache is rebuilt.
+    \item A separate service used to monitoring the nextcloud instance, which redirects the traffic to the monitoring pod. The monitoring pod is based on \href{https://github.com/xperimental/nextcloud-exporter}{nextcloud-exporter} metrics exporter tool. 
+\end{itemize}
+
+
+\subsubsection{Possible improvements}
+
+Some possible improvements to the presented solution are:
+
+\begin{itemize}
+    \itemsep0em
+    \item \textit{Encrypted connection}: Accessing with \texttt{http} is not secure, the connection should be encrypted using \texttt{https} in a real-world scenario.
+    \item \textit{Backup}: A backup solution must be implemented, in order to avoid data loss in case of disaster. 
+    \item \textit{Distributed solution}: As previously said, running this solution on a multi-node cluster has many advantages even if it requires a more complex setup.
+    \item \textit{More robust ingress solution}: Instead of exposing the service, some other solution like the \href{https://kubernetes.io/docs/concepts/services-networking/gateway/}{Gateway API} could be used.
+    \item \textit{Access Roles Based Control}: To improve the security: all the container are performing their tasks as root, this can be avoided by using a more fine-grained access control.
+\end{itemize}
