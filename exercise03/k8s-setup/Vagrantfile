@@ -1,0 +1,62 @@
+servers = [
+  { :hostname => "ex3-00", :ip => "192.168.132.60" },
+  { :hostname => "ex3-01", :ip => "192.168.132.61" },
+  # { :hostname => "ex3-02", :ip => "192.168.132.62" },
+]
+
+controlpscripts = [
+  './scripts/00_bash_common_provisioning.sh',
+  './scripts/01_install_k8s.sh',
+  './scripts/02_other_conveniences.sh',
+]
+
+scripts = [
+  './scripts/00_bash_common_provisioning.sh',
+  './scripts/01bis_install_k8s_worker.sh',
+  './scripts/02_other_conveniences.sh',
+]
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "fedora/39-cloud-base"
+  
+  config.vm.provider :libvirt do |lv|
+    lv.qemu_use_session = false
+    # Minimum requirements for kubernetes
+    # lv.memory = 2048
+    # lv.cpus = 2
+    lv.memory = 4096
+    lv.cpus = 3
+  end
+
+
+  # Configure the worker nodes
+  servers.each do |conf|
+    config.vm.define conf[:hostname] do |node|
+      node.vm.hostname = conf[:hostname]
+      node.vm.synced_folder ".", "/vagrant", disabled: true
+
+      node.vm.network :private_network,
+                      :libvirt__network_name => 'ex3-net'
+
+      # differente provisioning for the control control-plane-node
+      if conf[:hostname] == "ex3-00"
+        controlpscripts.each do |script|
+          node.vm.provision :shell,
+                            :path => script,
+                            :args => [conf[:ip]] # needed for 00_bash_common_provisioning
+        end
+        # taint the control-plane node
+        node.vm.provision :shell,
+                          :inline => "kubectl taint nodes #{conf[:hostname]} node-role.kubernetes.io/control-plane-",
+                          :privileged => true
+      else
+        scripts.each do |script|
+        node.vm.provision :shell,
+                          :path => script,
+                          :args => [conf[:ip]] # needed for 00_bash_common_provisioning
+        end
+      end
+    end
+  end
+end
+  
