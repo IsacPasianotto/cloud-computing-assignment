@@ -63,10 +63,20 @@ systemctl enable --now kubelet
 
 ########     CONFIGURE kubectl    ########
 
+export ipmaster=192.168.132.60
+scp -o StrictHostKeyChecking=no root@$ipmaster:/home/vagrant/admin.conf /home/vagrant/admin.conf
+
+
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo cp -i /home/vagrant/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 alias k=kubectl
+
+
+cd /home/vagrant
+mkdir -p .kube
+sudo cp /home/vagrant/admin.conf .kube/config
+sudo chown $(id -u vagrant):$(id -g vagrant) .kube/config
 
 
 ########     JOIN THE CLUSTER   ########
@@ -78,29 +88,11 @@ scp -o StrictHostKeyChecking=no root@$ipmaster:/root/kubejoin_command.sh /root
 
 
 
-############# TODO --> This must be done by hand ################
+############# INSTALL CNI PLUGINS #############
 
-# after the join, the node will be in NotReady state
-# the master node will have to approve the request
-# on the master node, run the command `kubectl get nodes` to see the new nodes
-# then run `kubectl get csr` to see the certificate signing requests
-# then run `kubectl certificate approve <csr-name>` to approve the requests
-# then run `kubectl get nodes` again to see the new nodes in Ready state
-# the new nodes will be in the NotReady state until the master node approves the requests
-
-# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
-# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get csr"
-# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl certificate approve <csr-name>"
-# ssh -o StrictHostKeyChecking=no root@$ipmaster "kubectl get nodes"
-
-# kubeadm init --pod-network-cidr=10.17.0.0/16
-# --services-cidr=10.96.0.0/12 /default
-# --control-plane-endpoint 192.168.132.80 /needed for HA
-# temporary log-out 
-
-# label the current node as worker
-# kubectl label node $(hostname) node-role.kubernetes.io/worker=worker
-
+sudo mkdir -p /opt/cni/bin
+sudo curl -O -L https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz
+sudo tar -C /opt/cni/bin -xzf cni-plugins-linux-amd64-v1.2.0.tgz
 
 
 ########     INSTALL K9S     ########
@@ -126,4 +118,4 @@ sudo dnf install -y helm
 ######      INSTALL OTHER TOOLS      ######
 
 
-sudo dnf install -y bat htop tmux curl git zsh util-linux-user
+sudo dnf install -y bat htop tmux curl git zsh util-linux-user podman

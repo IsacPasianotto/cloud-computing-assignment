@@ -64,12 +64,14 @@ dnf install -y crio kubelet kubeadm kubectl --disableexcludes=kubernetes
 
 # Enable and start the services
 
-sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
+# sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
 systemctl enable --now crio
 systemctl enable --now kubelet
 
 
-kubeadm init --pod-network-cidr=10.17.0.0/16 > /root/kubeinit.log
+# kubeadm init --pod-network-cidr=10.17.0.0/16 --service-cidr=10.96.0.0/12 --control-plane-endpoint 192.168.132.80 > /root/kubeinit.log
+kubeadm init --pod-network-cidr=10.17.0.0/16 --service-cidr=10.96.0.0/12  > /root/kubeinit.log
+
 
 cat /root/kubeinit.log | grep -A 1 "kubeadm join" > /root/kubejoin_command.sh
 chmod +777 /root/kubejoin_command.sh
@@ -81,3 +83,16 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 alias k=kubectl
+
+
+# to be reachable to other nodes
+
+sudo cp /etc/kubernetes/admin.conf /home/vagrant/admin.conf
+sudo chmod 666 /home/vagrant/admin.conf
+
+
+############# INSTALL CNI PLUGINS #############
+
+sudo mkdir -p /opt/cni/bin
+sudo curl -O -L https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz
+sudo tar -C /opt/cni/bin -xzf cni-plugins-linux-amd64-v1.2.0.tgz
