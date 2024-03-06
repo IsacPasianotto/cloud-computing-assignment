@@ -72,6 +72,28 @@ note: check with `k9s` that the pods are up and running before continuing with t
 
 ## Perform the benchmark:
 
-***TODO***
+```
+kubectl create ns osu
+```
 
+to perfor a bencharmk we can use the following command:
 
+```
+kubectl apply -f ./osu-bench.yaml -n osu 
+```
+
+where osu-bench.yaml is replaced to the acutal file name (see the `yaml-files` folder for the file content).
+
+Note that in this way when the benchmark is finished you need to manually delete the pod with:
+
+```
+kubectl delete -f ./osu-bench.yaml -n osu 
+```
+
+before running the next benchmark. Moreover, the results are only printed to the logs of the `launcher` pod and must be extracted manually with `kubectl logs` before the pod is deleted.
+
+For this reason, I've created a script that will do all of this for you. You can run the `perform_benchmark.sh` script with the following command:
+
+```
+./perform_benchmark.sh <number_of_benchmarks>
+```
