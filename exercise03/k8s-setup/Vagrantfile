@@ -20,7 +20,9 @@ scripts = [
 tocopy = [
   './scripts/04_deploy_flannel.sh',
   # './scripts/05_deploy_calico.sh',
+  './scripts/perform_benchmark.sh',
   '../yaml-files/latency-2-nodes.yaml',
+  '../yaml-files/latency-1-node.yaml',
 ]
 
 Vagrant.configure("2") do |config|
