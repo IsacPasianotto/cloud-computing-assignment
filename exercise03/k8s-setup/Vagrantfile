@@ -17,18 +17,11 @@ scripts = [
   './scripts/03_images_builder.sh',
 ]
 
-endscripts = [
+tocopy = [
   './scripts/04_deploy_flannel.sh',
   # './scripts/05_deploy_calico.sh',
+  '../yaml-files/latency-2-nodes.yaml',
 ]
-
-# dockerfiles = [
-#   './dockerfiles/entrypoint.sh',
-#   './dockerfiles/openmpi_builder.Dockerfile',
-#   './dockerfiles/osu_code_provider.Dockerfile',
-#   './dockerfiles/osu_compiled.Dockerfile',
-#   './dockerfiles/osu.Dockerfile',
-# ]
 
 Vagrant.configure("2") do |config|
   config.vm.box = "fedora/39-cloud-base"
@@ -42,7 +35,6 @@ Vagrant.configure("2") do |config|
     lv.cpus = 2
   end
 
-
   # Configure the worker nodes
   servers.each do |conf|
     config.vm.define conf[:hostname] do |node|
@@ -53,7 +45,6 @@ Vagrant.configure("2") do |config|
                       :libvirt__network_name => 'ex3-net'
 
       # differente provisioning for the control control-plane-node
-
       if conf[:hostname] == "ex3-00"
         controlpscripts.each do |script|
           node.vm.provision :shell,
@@ -68,29 +59,17 @@ Vagrant.configure("2") do |config|
                           :inline => "kubectl taint nodes ex3-00 node-role.kubernetes.io/control-plane-",
                           :privileged => true
 
-        endscripts.each do |script|
+        tocopy.each do |script|
           node.vm.provision :file,
                             :source => script,
                             :destination => "/home/vagrant/"
         end
-        # dockerfiles.each do |dockfile|
-        #   node.vm.provision :file,
-        #                     :source => dockfile,
-        #                     :destination => "/home/vagrant"
-        # end
-
       else
-
         scripts.each do |script|
         node.vm.provision :shell,
                           :path => script,
                           :args => [conf[:ip]]
         end
-        # dockerfiles.each do |dockfile|
-        #   node.vm.provision :file,
-        #                     :source => dockfile,
-        #                     :destination => "/home/vagrant"
-        # end
       end
     end
   end

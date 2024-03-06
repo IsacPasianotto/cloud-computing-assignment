@@ -1,13 +1,11 @@
 #!/bin/bash
 
-
 ###### ENABLE kubectl for NON-ROOT USER ######
 
 cd /home/vagrant
 mkdir -p .kube
 sudo cp /etc/kubernetes/admin.conf .kube/config
 sudo chown $(id -u vagrant):$(id -g vagrant) .kube/config
-
 
 ########     INSTALL K9S     ########
 
@@ -24,13 +22,10 @@ alias k=kubectl
 source <(kubectl completion bash)
 EOF
 
-
 ######       INSTALL HELM       ######
 
 dnf install -y helm
 
-
 ######      INSTALL OTHER TOOLS      ######
-
 
 sudo dnf install -y bat htop tmux curl git zsh util-linux-user podman docker

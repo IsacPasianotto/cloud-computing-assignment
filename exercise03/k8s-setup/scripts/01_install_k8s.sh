@@ -8,9 +8,7 @@
 # Login as root, as some of the commands require root access
 sudo su 
 
-
 ########   PRELIMINARY STEPS   ########
-
 
 # Load the modules for the container runtime
 modprobe overlay
@@ -39,7 +37,6 @@ swapoff -a
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-
 # Install the required packages
 dnf install -y iproute-tc wget vim bash-completion bat
 
@@ -56,7 +53,6 @@ gpgkey=https://pkgs.k8s.io/core:/stable:/v1.28/rpm/repodata/repomd.xml.key
 exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
 EOF
 
-
 dnf makecache
 dnf install -y crio kubelet kubeadm kubectl --disableexcludes=kubernetes
 
@@ -67,17 +63,10 @@ sed -i 's/10.85.0.0\/16/10.17.0.0\/16/' /etc/cni/net.d/100-crio-bridge.conflist
 systemctl enable --now crio
 systemctl enable --now kubelet
 
-
-# kubeadm init --pod-network-cidr=10.17.0.0/16 --service-cidr=10.96.0.0/12 --control-plane-endpoint 192.168.132.80 > /root/kubeinit.log
 kubeadm init --pod-network-cidr=10.17.0.0/16 --service-cidr=10.96.0.0/12 > /root/kubeinit.log
-# kubeadmin init > /root/kubeinit.log
-
-# standard pod, as recommended by flannel docs
-# kubeadm init --pod-network-cidr=10.244.0.0/16 > /root/kubeinit.log
 
 cat /root/kubeinit.log | grep -A 1 "kubeadm join" > /root/kubejoin_command.sh
 chmod +777 /root/kubejoin_command.sh
-
 
 ########     CONFIGURE kubectl    ########
 
@@ -86,12 +75,10 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 alias k=kubectl
 
-
 # to be reachable to other nodes
 
 sudo cp /etc/kubernetes/admin.conf /home/vagrant/admin.conf
 sudo chmod 666 /home/vagrant/admin.conf
-
 
 ############# INSTALL CNI PLUGINS #############
 

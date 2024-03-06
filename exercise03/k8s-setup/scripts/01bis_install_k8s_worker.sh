@@ -3,9 +3,7 @@
 # Login as root, as some of the commands require root access
 sudo su 
 
-
 ########   PRELIMINARY STEPS   ########
-
 
 # Load the modules for the container runtime
 modprobe overlay
@@ -34,7 +32,6 @@ swapoff -a
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-
 # Install the required packages
 dnf install -y iproute-tc wget vim bash-completion bat
 
@@ -51,7 +48,6 @@ gpgkey=https://pkgs.k8s.io/core:/stable:/v1.28/rpm/repodata/repomd.xml.key
 exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
 EOF
 
-
 dnf makecache
 dnf install -y crio kubelet kubeadm kubectl --disableexcludes=kubernetes
 
@@ -66,18 +62,15 @@ systemctl enable --now kubelet
 export ipmaster=192.168.132.60
 scp -o StrictHostKeyChecking=no root@$ipmaster:/home/vagrant/admin.conf /home/vagrant/admin.conf
 
-
 mkdir -p $HOME/.kube
 sudo cp -i /home/vagrant/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 alias k=kubectl
 
-
 cd /home/vagrant
 mkdir -p .kube
 sudo cp /home/vagrant/admin.conf .kube/config
 sudo chown $(id -u vagrant):$(id -g vagrant) .kube/config
-
 
 ########     JOIN THE CLUSTER   ########
 
@@ -86,14 +79,11 @@ export ipmaster=192.168.132.60
 scp -o StrictHostKeyChecking=no root@$ipmaster:/root/kubejoin_command.sh /root
 /root/kubejoin_command.sh
 
-
-
 ############# INSTALL CNI PLUGINS #############
 
 sudo mkdir -p /opt/cni/bin
 sudo curl -O -L https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz
 sudo tar -C /opt/cni/bin -xzf cni-plugins-linux-amd64-v1.2.0.tgz
-
 
 ########     INSTALL K9S     ########
 
@@ -109,13 +99,10 @@ alias k=kubectl
 source <(kubectl completion bash)
 EOF
 
-
 ######       INSTALL HELM       ######
 
 sudo dnf install -y helm
 
-
 ######      INSTALL OTHER TOOLS      ######
-
 
 sudo dnf install -y bat htop tmux curl git zsh util-linux-user podman docker
