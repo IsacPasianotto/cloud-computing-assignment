@@ -4,122 +4,107 @@ This folder contains the provided solution for the second [`Cloud-advanced` modu
 
 The assignment file I've considered (it may be changed after this solution is published) is also available in the [assignment.md](./assignment.md) file. 
 
+## 0. Prerequisites
 
+The only prerequisites should be the basic virtualization tools and  `Vagrant` with the respective dependencies.
 
-## Notes: 
-
-once you have deployed both of the VM with:
+Since the VM is created using `libvirt`, you'll need also the vagrant plugin `vagrant-libvirt`:
 
 ```
-sud virsh net-define ./scripts/ex3-netw.xml
+vagrant plugin install vagrant-libvirt
+```
+
+Even if it's not strictly necessary, in order to retrieve the benchmark results, the `vagrant-scp` plugin is also recommended:
+
+```
+vagrant plugin install vagrant-scp
+```
+
+## 1. Setup the VM
+
+First of all, you need to create the VM which will be used for this exercise. In the [`k8s-setup`](./k8s-setup/) directory, you will find the `Vagrantfile` and all the needed files to define the network and provision the VM.
+
+```
+cd k8s-setup
+sudo virsh net-define scripts/ex3-network.xml
+sudo virsh net-start ex3-net
 vagrant up --no-parallel
 ```
 
-Now you can ssh into the control plane node  with `vagrant ssh ex3-00`, assign the role to the other node and check that everything is up and in a ready  state with:
-```
-kubectl label node ex3-01 node-role.kubernetes.io/worker=worker
-kubectl get nodes -o wide
-```
-
-## Set up the OSU benchmark:
-
-***Requirement***:
-
-Create a container with the OSU benchmark on this page: https://mvapich.cse.ohio-state.edu/benchmarks/. More detailed instructions about compilation can be found here. This container must have a behavior as expected by the operator. Specialized containers must be created to compile and run the code. For example, follow the mpi-operator doc
-
-***end of requirement***
-
-
-
-
-
-### MPI Operator installation:
-
-Following the [official repository documentation](https://github.com/kubeflow/mpi-operator) the installation of the MPI operator (deploy version) can be done with the following command:
-
-```
-kubectl apply -f https://raw.githubusercontent.com/kubeflow/mpi-operator/master/deploy/v2beta1/mpi-operator.yaml
-```
-
-
-## Install flannel:
-
-login into the control plane node and run the following command:
+Once the VMs are up and running, you can ssh into the control plane node (`ex3-00`) and check that both nodes are up and running with:
 
 ```
 vagrant ssh ex3-00
 
+[vagrant@ex3-00 ~]$ kubectl get nodes -o wide
+
+TODO: add the output of the command
+
+
+```
+
+
+## 2. MPI Operator installation:
+
+Following the [official repository documentation](https://github.com/kubeflow/mpi-operator) the installation of the MPI operator (deploy version) can be done with the following command:
+
+```
+[vagrant@ex3-00 ~]$ kubectl apply -f https://raw.githubusercontent.com/kubeflow/mpi-operator/master/deploy/v2beta1/mpi-operator.yaml
+```
+
+
+## 3.a. Install flannel:
+
+In the control plane node, you will find a script called [`04_deploy_flannel.sh`](./k8s-setup/scripts/04_deploy_flannel.sh) that will take care of the installation of [`flannel`](https://github.com/flannel-io/flannel). 
+
+```
 [vagrant@ex3-00 ~]$ ./04_deploy_flannel.sh
 ```
 
-Then reload the VMs with:
+Once the pods are up and running (you can check with `k9s`), a reboot of the VMs is necessary to apply the changes to the network configuration. To do so, just run
 
 ```
 vagrant reload
 ```
 
-The reboot is necessary to apply the changes to the network configuration.
+## 3.b. Install calico:
 
+Alternatively, you can install [`calico`](https://github.com/projectcalico/calico) with the [`05_deploy_calico.sh`](./k8s-setup/scripts/05_deploy_calico.sh) script.
 
-note: check with `k9s` that the pods are up and running before continuing with the next steps.
-
-
-## CALICO installation:
-
-If you have installed flannel, you can uninstall it with the following command:
+note that if you have previously installed flannel, you need to uninstall it with:
 
 ```
-helm uninstall flannel --namespace kube-flannel
+[vagrant@ex3-00 ~]$ helm uninstall flannel --namespace kube-flannel
 ```
 
-Then you can install calico with
+Before running: 
 
 ```
-./05_deploy_calico.sh
+[vagrant@ex3-00 ~]$ ./05_deploy_calico.sh
 ```
 
-and then reload the VMs with:
+Also in this case, a reboot of the VMs is necessary to apply the changes to the network configuration. To do so, just run `vagrant reload`.
 
-```
-vagrant reload
-```
+If you want to switch back to flannel, you can do so with the following command:
 
-
-if you want to uninstall calico to reinstall flannel, you can just run:
- 
 ```
 kubectl delete -f calico.yaml
 ```
 
-### Container creation:
-
-*Remark*: More implementation of the MPI interface can be found: OpenMPI, MPICH and Intel MPI. Since no specific version is required, I'm going to use the OpenMPI version.
+where `calico.yaml` is the downloaded and modified file used by the `05_deploy_calico.sh` script.
 
 
-## Perform the benchmark:
+## 4 Perform the benchmark:
+
+Before running the benchmark, create a dedicated namespace with:
 
 ```
 kubectl create ns osu
 ```
 
-to perfor a bencharmk we can use the following command:
+Then, to perfor a bencharmk there is provided the [`perform_benchmark.sh`](./k8s-setup/scripts/perform_benchmark.sh) script that will do all the needed steps for you. It is expected to be launched as follow: 
 
 ```
-kubectl apply -f ./osu-bench.yaml -n osu 
-```
+[vagrant@ex3-00 ~]$ ./perform_benchmark.sh <yaml-file> <output-file>
 
-where osu-bench.yaml is replaced to the acutal file name (see the `yaml-files` folder for the file content).
-
-Note that in this way when the benchmark is finished you need to manually delete the pod with:
-
-```
-kubectl delete -f ./osu-bench.yaml -n osu 
-```
-
-before running the next benchmark. Moreover, the results are only printed to the logs of the `launcher` pod and must be extracted manually with `kubectl logs` before the pod is deleted.
-
-For this reason, I've created a script that will do all of this for you. You can run the `perform_benchmark.sh` script with the following command:
-
-```
-./perform_benchmark.sh <number_of_benchmarks>
-```
+where `<yaml-file>` is the name of the yaml file containing the benchmark definition, see the [`yaml-files`](https://github.com/IsacPasianotto/cloud-computing-assignment/tree/main/exercise03/yaml-files) folder for some examples.
