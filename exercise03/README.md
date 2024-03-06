@@ -64,6 +64,32 @@ The reboot is necessary to apply the changes to the network configuration.
 note: check with `k9s` that the pods are up and running before continuing with the next steps.
 
 
+## CALICO installation:
+
+If you have installed flannel, you can uninstall it with the following command:
+
+```
+helm uninstall flannel --namespace kube-flannel
+```
+
+Then you can install calico with
+
+```
+./05_deploy_calico.sh
+```
+
+and then reload the VMs with:
+
+```
+vagrant reload
+```
+
+
+if you want to uninstall calico to reinstall flannel, you can just run:
+ 
+```
+kubectl delete -f calico.yaml
+```
 
 ### Container creation:
 
