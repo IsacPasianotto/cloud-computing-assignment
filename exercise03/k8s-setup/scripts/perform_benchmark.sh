@@ -20,12 +20,14 @@ export results_file=$2
 
 kubectl apply -f $yaml_file --namespace osu
 
-export pod_name=$(kubectl get pods -n osu | grep launcher | awk '{print $1}')
-
-while [ "$(kubectl get pod $pod_name -n osu -o jsonpath='{.status.phase}')" != "Succeeded" ]; do
+export status=""
+while [ "$status" != "Completed" ]; do
+    status=$(kubectl get pod -n osu | grep launcher | awk '{print $3}')
     echo "Waiting for the benchmark to complete..."
     sleep 5
 done
+
+export pod_name=$(kubectl get pods -n osu | grep launcher | awk '{print $1}')
 
 kubectl logs $pod_name -n osu >> $results_file
 echo "Result have been appended to $results_file"
