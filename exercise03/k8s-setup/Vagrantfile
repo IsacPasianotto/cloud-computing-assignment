@@ -8,22 +8,27 @@ controlpscripts = [
   './scripts/00_bash_common_provisioning.sh',
   './scripts/01_install_k8s.sh',
   './scripts/02_other_conveniences.sh',
+  './scripts/03_images_builder.sh',
 ]
 
 scripts = [
   './scripts/00_bash_common_provisioning.sh',
   './scripts/01bis_install_k8s_worker.sh',
+  './scripts/03_images_builder.sh',
 ]
 
 endscripts = [
-  './scripts/03_deploy_flannel.sh',
-  # './scripts/04_deploy_calico.sh',
-  './scripts/openmpi_builder.Dockerfile',
-  './scripts/osu_code_provider.Dockerfile',
-  './scripts/osu_benchmarks.Dockerfile',
-  './scripts/osu.Dockerfile',
-  './scripts/entrypoint.sh',
+  './scripts/04_deploy_flannel.sh',
+  # './scripts/05_deploy_calico.sh',
 ]
+
+# dockerfiles = [
+#   './dockerfiles/entrypoint.sh',
+#   './dockerfiles/openmpi_builder.Dockerfile',
+#   './dockerfiles/osu_code_provider.Dockerfile',
+#   './dockerfiles/osu_compiled.Dockerfile',
+#   './dockerfiles/osu.Dockerfile',
+# ]
 
 Vagrant.configure("2") do |config|
   config.vm.box = "fedora/39-cloud-base"
@@ -33,8 +38,8 @@ Vagrant.configure("2") do |config|
     # Minimum requirements for kubernetes
     # lv.memory = 2048
     # lv.cpus = 2
-    lv.memory = 4096
-    lv.cpus = 3
+    lv.memory = 2048
+    lv.cpus = 2
   end
 
 
@@ -48,31 +53,44 @@ Vagrant.configure("2") do |config|
                       :libvirt__network_name => 'ex3-net'
 
       # differente provisioning for the control control-plane-node
+
       if conf[:hostname] == "ex3-00"
         controlpscripts.each do |script|
           node.vm.provision :shell,
                             :path => script,
-                            :args => [conf[:ip]] # needed for 00_bash_common_provisioning
+                            :args => [conf[:ip]]
         end
-        # taint the control-plane node
         node.vm.provision :shell,
-                          :inline => "kubectl wait --for=condition=Ready node/ex3-00 --timeout=300s",
+                          :inline => "kubectl wait --for=condition=ready node ex3-00 --timeout=300s",
                           :privileged => false
+        # allow to schedule pods also on the control-plane node
         node.vm.provision :shell,
                           :inline => "kubectl taint nodes ex3-00 node-role.kubernetes.io/control-plane-",
                           :privileged => true
-        # copy all the endscripts to the control-plane node
+
         endscripts.each do |script|
           node.vm.provision :file,
                             :source => script,
                             :destination => "/home/vagrant/"
         end
+        # dockerfiles.each do |dockfile|
+        #   node.vm.provision :file,
+        #                     :source => dockfile,
+        #                     :destination => "/home/vagrant"
+        # end
+
       else
+
         scripts.each do |script|
         node.vm.provision :shell,
                           :path => script,
-                          :args => [conf[:ip]] # needed for 00_bash_common_provisioning
+                          :args => [conf[:ip]]
         end
+        # dockerfiles.each do |dockfile|
+        #   node.vm.provision :file,
+        #                     :source => dockfile,
+        #                     :destination => "/home/vagrant"
+        # end
       end
     end
   end

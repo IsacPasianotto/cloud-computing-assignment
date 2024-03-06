@@ -33,4 +33,4 @@ dnf install -y helm
 ######      INSTALL OTHER TOOLS      ######
 
 
-sudo dnf install -y bat htop tmux curl git zsh util-linux-user podman
+sudo dnf install -y bat htop tmux curl git zsh util-linux-user podman docker
