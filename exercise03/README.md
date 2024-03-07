@@ -36,11 +36,10 @@ Once the VMs are up and running, you can ssh into the control plane node (`ex3-0
 ```
 vagrant ssh ex3-00
 
-[vagrant@ex3-00 ~]$ kubectl get nodes -o wide
-
-TODO: add the output of the command
-
-
+[vagrant@ex3-00 ~]$ kubectl get nodes
+NAME     STATUS   ROLES           AGE     VERSION
+ex3-00   Ready    control-plane   10m     v1.28.7
+ex3-01   Ready    <none>          4m36s   v1.28.7
 ```
 
 

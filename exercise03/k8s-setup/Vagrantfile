@@ -23,6 +23,8 @@ tocopy = [
   './scripts/perform_benchmark.sh',
   '../yaml-files/latency-2-nodes.yaml',
   '../yaml-files/latency-1-node.yaml',
+  '../yaml-files/collective-allgather-1node.yaml',
+  '../yaml-files/collective-allgather-2nodes.yaml',
 ]
 
 Vagrant.configure("2") do |config|
