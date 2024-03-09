@@ -53,20 +53,7 @@ kubectl apply -f ipaddresspool.yaml
 kubectl apply -f l2advertisement.yaml
 ```
 
-### 3. Install the `nginx` ingress controller
-
-To deploy the [nginx ingress controller](https://kubernetes.github.io/ingress-nginx/deploy/), run the following command:
-
-```bash
-cd ../ingress-nginx
-
-kubectl apply -f ingress-nginx-controller.yaml
-
-kubectl wait --for=condition=available --timeout=600s deployment/ingress-nginx-controller -n ingress-nginx
-```
-
-
-### 4. Create the namespace `nextcloud` and define the needed `pv` and `pvc`
+### 3. Create the namespace `nextcloud` and define the needed `pv` and `pvc`
 
 Persist the volumes are used to store the data in case of a pod failure.
 
@@ -83,26 +70,9 @@ kubectl apply -f postgres-pv.yaml -n nextcloud
 kubectl apply -f postgres-pvc.yaml -n nextcloud
 ```
 
-### 5. Certificates
+### 4. Create the `secret`s needed
 
-Install the [`cert-manager`](https://github.com/cert-manager/cert-manager?tab=readme-ov-file) and its `kubectl` plugin:
-
-```
-cd ../certificates
-
-kubectl create namespace cert-manager
-kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.yaml
-
-curl -L -o kubectl-cert-manager.tar.gz https://github.com/jetstack/cert-manager/releases/latest/download/kubectl-cert_manager-linux-amd64.tar.gz
-tar xzf kubectl-cert-manager.tar.gz
-sudo mv kubectl-cert_manager /usr/local/bin
-
-kubectl apply -f certificate.yaml -n nextcloud
-```
-
-### 6. Create the `secret`s needed
-
-Secret are used to store sensitive information, such as passwords and tokens. Using a secret ensures that the sensitive will bee stored in volatile memory and not in the filesystem.
+Secret are used to store sensitive information, such as passwords and tokens. The used helm chart expects the following secrets to be created:
 
 ```bash
 kubectl create secret generic -n nextcloud nextcloud-credentials \
@@ -120,7 +90,7 @@ kubectl create secret generic -n nextcloud redis-credentials \
   --from-literal=redis-password=changeme
 ```
 
-### 7. Install `nextcloud`
+### 5. Install `nextcloud`
 
 Finally, you can install the nextcloud instance using the [`helm`](https://helm.sh/) package manager and the official [nextcloud helm chart](https://github.com/nextcloud/helm/tree/main/charts/nextcloud)
 
@@ -137,22 +107,20 @@ helm install my-nextcloud-instance nextcloud/nextcloud -f values.yaml -n nextclo
 
 You can access the nextcloud instance searching for the `external-ip` of the service `my-nextcloud-instance-nextcloud`:
 
-For example: 
+You can access the nextcloud instance through the [`service`](https://kubernetes.io/docs/concepts/services-networking/service/) the helm chart creates.
+It will have the name equals to the `release-name` we used in the installation (i.e. `my-nextcloud-instance` in this case). 
+On the vagrant machine ensure that the service exists, and then you can use the `kubectl port-forward` command to access the nextcloud instance:
 
 ```
 [vagrant@ex2-00 ~]$ kubectl get svc -n nextcloud
 NAME                                   TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)          AGE
 my-nextcloud-instance                  LoadBalancer   10.100.237.26    192.168.121.201   8080:32019/TCP   6m55s
-my-nextcloud-instance-metrics          LoadBalancer   10.110.211.136   192.168.121.202   9205:31706/TCP   6m55s
-my-nextcloud-instance-postgresql       ClusterIP      10.107.223.55    <none>            5432/TCP         6m55s
-my-nextcloud-instance-postgresql-hl    ClusterIP      None             <none>            5432/TCP         6m55s
-my-nextcloud-instance-redis-headless   ClusterIP      None             <none>            6379/TCP         6m55s
-my-nextcloud-instance-redis-master     ClusterIP      10.102.236.232   <none>            6379/TCP         6m55s
+...                                    ...            ...              ...               ...              ...
 
-[vagrant@ex2-00 ~]$ kubectl port-forward service/my-nextcloud-instance 8080:8080 --address 0.0.0.0 -n nextcloud
+[vagrant@ex2-00 ~]$ tmux new-session -d -s nextcloud-portforward "kubectl port-forward service/my-nextcloud-instance 8080:8080 --address 0.0.0.0 -n nextcloud"
 ```
 
-In this case, the `external-ip` of the `my-nextcloud-instance` service is `192.168.121.201` and executing a port-forwarding on the `8080` port to the whatever port in the host machine: 
+On you host machine run:
 
 ```
 export guest_ip=$(vagrant ssh-config $(vagrant global-status | awk '/ex2-00/ {print $1}') | awk '/HostName/ {print $2}')

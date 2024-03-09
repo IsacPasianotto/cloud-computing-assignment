@@ -1,6 +1,4 @@
-# Exercise  for the course Cloud Computing Basic.
-
-## Exercise 2: mpi service in Kubernetes (Advanced)
+# Exercise 2: mpi service in Kubernetes (Advanced)
 
 ### Introduction
 

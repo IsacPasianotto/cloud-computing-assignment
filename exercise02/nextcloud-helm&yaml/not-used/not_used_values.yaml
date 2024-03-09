@@ -16,16 +16,52 @@ replicaCount: 1
 # Possible improvements: 
 # ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: false
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "X-Forwarded-For"
+    # nginx.ingress.kubernetes.io/proxy-body-size: 4G
+    # kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer: "selfsigned"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/server-snippet: |-
+       server_tokens off;
+       proxy_hide_header X-Powered-By;
+
+       rewrite ^/.well-known/webfinger /public.php?service=webfinger last;
+       rewrite ^/.well-known/host-meta /public.php?service=host-meta last;
+       rewrite ^/.well-known/host-meta.json /public.php?service=host-meta-json;
+       location = /.well-known/carddav {
+         return 301 $scheme://$host/remote.php/dav;
+       }
+       location = /.well-known/caldav {
+         return 301 $scheme://$host/remote.php/dav;
+       }
+       location = /robots.txt {
+         allow all;
+         log_not_found off;
+         access_log off;
+       }
+       location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)/ {
+         deny all;
+       }
+       location ~ ^/(?:autotest|occ|issue|indie|db_|console) {
+         deny all;
+       }
+  className: nginx
+  path: / 
+  hosts:
+    - nextcloud.example.com
+  servicePort: https
+  tls:
+    - secretName: nextcloud-tls
+      hosts:
+        - nextcloud.example.com
   
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/
 lifecycle: {}
   # postStartCommand: []
   # preStopCommand: []
-
-phpClientHttpsFix:
-  enabled: true
-  protocol: https
 
 nextcloud:
   host: nextcloud.example.com
@@ -60,7 +96,18 @@ nextcloud:
     autoconfig.php: true                    # Used for auto configure database
     smtp.config.php: true                   # SMTP default configuration
   
-  configs: {}                               # ref: https://docs.nextcloud.com/server/15/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
+  # configs: {}                               # ref: https://docs.nextcloud.com/server/15/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
+  configs:
+    proxy.config.php: |-
+      <?php
+      $CONFIG = array (
+        'trusted_proxies' => array(
+          0 => '127.0.0.1',
+          1 => '10.0.0.0/8',
+          2 => 'nextcloud.example.com'
+        ),
+        'forwarded_for_headers' => array('HTTP_X_FORWARDED_FOR'),
+      );
 
   # Small scripts which are placed in `/docker-entrypoint-hooks.d/<hook-name>/helm.sh`
   # ref: https://github.com/nextcloud/docker?tab=readme-ov-file#auto-configuration-via-hook-folders

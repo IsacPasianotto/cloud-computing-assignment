@@ -15,17 +15,19 @@
 ## Exercise 3
 /exercise03/__pycache__
 /exercise03/k8s-setup/.vagrant/
+/exercise03/results/plotter/
 
 ## General
 
 # LaTeX compilation files: 
-*.aux
-*.log
-*.out
-*.toc
-*.pdf
-/clear.sh
+texfiles/*.aux
+texfiles/*.log
+texfiles/*.out
+texfiles/*.toc
+texfiles/*.pdf
+texfiles/clear.sh
 
 # editor files
 .vscode
+./venv
 *~

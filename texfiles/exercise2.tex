@@ -18,9 +18,8 @@ The difference in the structure between the kubernetes-based solution and the pr
     \item The external database is now a \texttt{PostgreSQL} instance instead of \texttt{mariadb}. This is done due to an \href{https://github.com/nextcloud/helm/issues/506}{issue} with mariadb and the nextcloud helm chart unresolved at the time of writing.
     \item The access to Nextcloud is now done through a \href{https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/}{\texttt{Kubernetes service}}\footnote{I've \
         considered also the \href{https://kubernetes.io/docs/concepts/services-networking/ingress/}{Ingress API} and tried to implement it. \
-        Viewing the logs it seems that traffic correctly goes though it, but I was not able to get rid of \texttt{404} error. \
         Another possible solution (not tested) were to use the \href{https://kubernetes.io/docs/concepts/services-networking/gateway/}{\texttt{Gateway API}}, which is meant to be a replacement for the Ingress API which is flagged as \textit{frozen}.} \ 
-        instead of using \texttt{Caddy} as a reverse proxy. The service is exposed thanks to the \href{https://metallb.org/}{MetalLB} load balancer, which allows to expose the service assigning them an external IP.
+        instead of using \texttt{Caddy} as a reverse proxy.
 \end{itemize}
 
 For this exercise, I've created the kubernetes cluster using a virtual machine with \texttt{vagrant}.
