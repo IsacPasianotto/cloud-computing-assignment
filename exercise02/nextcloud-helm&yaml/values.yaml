@@ -279,7 +279,7 @@ metrics:
     labels: {}
 
 rbac:
-  enabled: false
+  enabled: true
   serviceaccount:
     create: true
     name: nextcloud-serviceaccount

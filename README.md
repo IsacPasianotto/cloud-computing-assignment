@@ -8,7 +8,7 @@ This repository contains the assignments for the exam of the course "Cloud compu
 
 **Presentation**: [Presentation](./Presentation.pdf)
 
-**Course**: [module base](https://github.com/Foundations-of-HPC/Cloud-Basic-2023), [module advanced](https://github.com/Foundations-of-HPC/Cloud-advanced-2023)
+**Course**: [module basic](https://github.com/Foundations-of-HPC/Cloud-Basic-2023), [module advanced](https://github.com/Foundations-of-HPC/Cloud-advanced-2023)
 
 
 ## Repository structure
