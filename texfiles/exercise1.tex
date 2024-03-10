@@ -230,8 +230,7 @@ Imaging a much higher traffic, some primary considerations can be made:
 first of all, some of the containers can be scaled vertically (i.e. increase the resources available to the container), for example the \texttt{redis} container, which is used as a cache server, in this way the cache hit rate will be increased, and the communication with the database will be reduced.
 Also the \texttt{caddy} container can be scaled vertically, in order to handle more SSL connections.
 
-Moreover adding a container that acts as a load balancer can be a good idea, in this way the traffic will be distributed among the different containers, allowing to scale horizontally the other containers which are more stressed.
-If a load balancer is used, more than one instance of the \texttt{nextcloud} and \texttt{nginx} containers can be used, allowing to scale horizontally the system distributing the traffic among the different instances.
+Since \texttt{caddy} acts also as a reverse proxy, it can be used to balance the traffic among the different instances of the \texttt{nextcloud} and \texttt{nginx} containers which means that more than one instance of the \texttt{nextcloud} and \texttt{nginx} containers can be used, allowing to scale horizontally the system and distributing the traffic among the different instances.
 Finally, also the database can be scaled horizontally, in order to handle more requests and to guarantee more reliability.
 
 In addition to that, an evaluation about the trade-off between security and performance should be made. The server-side encryption can be disabled, in order to reduce the CPU usage, but this will reduce the security of the system. The possibility of disabling it and leave to the users the responsibility of encrypting the files which must be kept secret should be evaluated.

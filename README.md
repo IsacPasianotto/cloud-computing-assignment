@@ -15,8 +15,8 @@ This repository contains the assignments for the exam of the course "Cloud compu
 
 The assignment is composed of two exercises, each of them in its own folder: 
 
-- [Assignment 1](./Assignment1): The depolyment of a container based file storage system, done implementing [nextcloud](https://nextcloud.com/) with [`docker-compose`](https://docs.docker.com/compose/). 
-- [Assignment 2](./Assignment2): Replicate the deployment of the previous assignment, but in a [`kubernetes`](https://kubernetes.io/) environment. This is done in a `k8s` single node cluster, deployed using [`vagrant`](https://www.vagrantup.com/).
-- [Assignment 3](./Assignment3): Peroformed the [osu benchmark](https://mvapich.cse.ohio-state.edu/benchmarks/) on a `k8s` 2-nodes cluster. Also in this case, the cluster is deployed using `vagrant`.
+- [Assignment 1](./exercise01/): The depolyment of a container based file storage system, done implementing [nextcloud](https://nextcloud.com/) with [`docker-compose`](https://docs.docker.com/compose/). 
+- [Assignment 2](./exercise02/): Replicate the deployment of the previous assignment, but in a [`kubernetes`](https://kubernetes.io/) environment. This is done in a `k8s` single node cluster, deployed using [`vagrant`](https://www.vagrantup.com/).
+- [Assignment 3](./exercise03/): Peroformed the [osu benchmark](https://mvapich.cse.ohio-state.edu/benchmarks/) on a `k8s` 2-nodes cluster. Also in this case, the cluster is deployed using `vagrant`.
 
 More information are available in the `README.md` files in each folder and in the report of the assignments uploaded in this repository. 

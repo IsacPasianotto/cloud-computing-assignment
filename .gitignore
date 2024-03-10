@@ -25,7 +25,13 @@ texfiles/*.log
 texfiles/*.out
 texfiles/*.toc
 texfiles/*.pdf
+texfiles/*.nav
+texfiles/*.snm
 texfiles/clear.sh
+
+#Draw.io files 
+*.drawio.bkp
+*.drawio
 
 # editor files
 .vscode

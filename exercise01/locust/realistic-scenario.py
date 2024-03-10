@@ -8,8 +8,8 @@ import os
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class NextcloudUser(HttpUser):
-    wait_time = between(0.5, 3)
-    timeout = 10
+    wait_time = between(1, 1)
+    timeout = between(0.5, 3)
     counter = 0
 
     def __init__(self, *args, **kwargs):
