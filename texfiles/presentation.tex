@@ -209,32 +209,86 @@
 %%   Exercise 02 %%
 %%%%%%%%%%%%%%%%%%%
 
-\section{Cloud \textbf{advanced} module: Nextcloud in a kubernetes flavor}
+\section{Cloud \textbf{advanced} module:\\ Nextcloud in a kubernetes flavor}
+
+\subsection{Requirements}
+\begin{frame}
+    \frametitle{Requirements}
+    Re-deploy the solution of the previous exercise, but in a kubernetes environment
+    \begin{itemize}
+        \item The cluster must run \texttt{k8s}, one node is required
+        \item The volume must survive a \texttt{pod crash} and \texttt{accidental deletion}
+        \item The service must be accessible from the user via IP or FQDN
+        \item Eventual databases or \textbf{third-party services} necessary for the deployed software must \textbf{run in their pod}
+    \end{itemize}
+\end{frame}
 
 \subsection{Different architecture}
 \begin{frame}
     \frametitle{Different architecture}
-    What is different, ...
+    \begin{columns}
+        \column{0.66\textwidth}
+        \begin{itemize}
+            \item One node $\rightarrow$  the control plane is also the worker node
+            \item Used the nextcloud \texttt{helm chart}
+            \item Used \texttt{metallb} to expose the service
+            \item Access is done through a \texttt{service}
+            \item All the pods run in a dedicated namespace
+            \item The kubernetes orchestrator automatically takes care of the pods, respawning them if needed
+        \end{itemize}
+        
+        \vspace{4em}
+        \includegraphics[width=\textwidth]{images/other/githubissue}
+
+        \column{0.33\textwidth}
+        \begin{figure}
+            \includegraphics[height=0.25\textheight]{images/other/kubernetes-logo}
+            \includegraphics[height=0.25\textheight]{images/other/helm-logo}
+            \includegraphics[height=0.2\textheight]{images/other/metallb-logo}
+        \end{figure}
+
+    \end{columns}
 \end{frame}
 
 \begin{frame}
     \frametitle{Different architecture (con'd)}
     \begin{figure}
         \includegraphics[height=0.85\textheight]{images/other/exadvanceddiagram}
-        %\caption{Description of the deployed structure}
     \end{figure}
 \end{frame}
 
-\subsection{How to deploy}
+\subsection{How it works}
 \begin{frame}
-    \frametitle{How to deploy}
-    The magic of helm
+    \frametitle{How it works}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{itemize}
+            \item Installation done with \texttt{helm} and a custom \texttt{values.yaml} file
+            \item Manually created \texttt{persistent volume} and \texttt{persistent volume claim}
+            \item Manually created \texttt{secret}s for storing credentials (avoiding them to be stored in the \texttt{values.yaml} file)
+            \item Postgres, Redis and metrics run in their own pods
+            \item System can survive a pod crash or accidental deletion  
+        \end{itemize}
+        \column{0.5\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{images/other/pod-deletion}
+            \caption*{After a pod deletion, the orchestrator automatically respawns it}
+            \includegraphics[width=\textwidth]{images/other/terminal-access}
+        \end{figure}
+    \end{columns}
 \end{frame}
 
 \subsection{Benefits of kubernetes}
 \begin{frame}
     \frametitle{Benefits of kubernetes}
-    What are the benefits, ...
+    Some of the benefits of using kubernetes as container orchestrator are: 
+    \begin{itemize}
+        \item \textbf{Availability}: automatic pod respawning in case of crash
+        \item \textbf{Scalability}: easy to add more nodes, and the \texttt{Horizontal Pod Autoscaler} can automatically add more pods
+        \item \textbf{Topology awareness}: easy to schedule pods on different nodes to avoid single point of failure
+        \item \textbf{Resource management}: kubernetes can automatically manage the resources of the pods, setting limits to the CPU and memory usage
+        \item \textbf{Portability}: moving the configuration to another cluster/cloud provider should be easy
+    \end{itemize}
 \end{frame}
 
 
@@ -242,7 +296,7 @@
 %%   Exercise 03 %%
 %%%%%%%%%%%%%%%%%%%
 
-\section{Cloud \textbf{advanced} module: OSU benchmarks in k8s}
+\section{Cloud \textbf{advanced} module: \\OSU benchmarks in k8s}
 
 \subsection{Requirements}
 \begin{frame}
@@ -311,7 +365,6 @@
         \includegraphics[width=\textwidth]{images/other/one_two_node}
     \end{figure}
 \end{frame}
-
 
 \begin{frame}
     \frametitle{Results (con'd)}
