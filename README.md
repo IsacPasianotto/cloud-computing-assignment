@@ -4,9 +4,9 @@ This repository contains the assignments for the exam of the course "Cloud compu
 
 **Author**: [Isac Pasianotto](mailto:ISAC.PASIANOTTO@studenti.units.it)
 
-**Report**: [PASIANOTTO_report.pdf](./PASIANOTTO_report.pdf)
+**Report**: [Pasianotto_report.pdf](./Pasianotto_report.pdf)
 
-**Presentation**: [Presentation](./Presentation.pdf)
+**Presentation**: [presentation.pdf](./presentation.pdf)
 
 **Course**: [module basic](https://github.com/Foundations-of-HPC/Cloud-Basic-2023), [module advanced](https://github.com/Foundations-of-HPC/Cloud-advanced-2023)
 
