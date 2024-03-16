@@ -82,7 +82,7 @@ The \texttt{docker-compose.yml} file uses the following images\footnote{This con
     \item \href{https://hub.docker.com/layers/library/nextcloud/28.0.2-fpm/images/sha256-dc1b232c39cd29fe81442f0e4d1c523148afecaf0bcf1cdffb7c52441bf63af7?context=explore}{\texttt{nextcloud:28.0.2-fpm}}: 
     base image for the Nextcloud platform. In particular two images are used, the principal one for having the desired storage platform and a second one which is going to run the built-in \texttt{cron.sh}  script for background tasks\footnote{This solution was inspired by \href{https://help.nextcloud.com/t/nextcloud-docker-container-best-way-to-run-cron-job/157734/2}{this} and \href{https://help.nextcloud.com/t/clarification-regarding-cron-jobs-setup-config/134450}{this} forum pages}.
     \item \href{https://hub.docker.com/_/mariadb}{\texttt{mariadb:11.2.3}}: the databases the official Nextcloud documentation suggests to use. 
-    \item \href{https://hub.docker.com/_/nginx}{\texttt{nginx:1.25.4-alpine3.18}}: the web server used to serve the Nextcloud platform, the other alternative were apache.
+    \item \href{https://hub.docker.com/_/nginx}{\texttt{nginx:1.25.4-alpine3.18}}: the web server used to serve the Nextcloud platform, the other alternative could have been apache.
     \item \href{https://hub.docker.com/_/redis}{\texttt{redis:7.2.4-alpine}}: the cache server; when a client requests a file, the server will first check if the file is in the cache, this should enhance the performance.
     \item \href{https://hub.docker.com/_/caddy}{\texttt{caddy:2.7.6-alpine}}: a lightweight web server, used as a reverse proxy. It was chosen because it automatically manages the SSL certificate[\ref{subsec:security}].
 \end{enumerate}
@@ -100,10 +100,10 @@ The \texttt{docker-compose} tool will create the containers, then the system wil
 Nextcloud offers out-of-the-box all the functionalities required at \hyperref[subsec:requirements]{points 1 and 2} of the requirements.
 
 Using the provided web interface, the admin can create, delete and modify users.
-Obviously, every created user can log in, log out to the system.
+Obviously, every created user can log in and log out to the system.
 Every user (normal or admin) has access to a personal storage space, where they can upload, download, delete and modify files that are not accessible by other users.
 
-The admin can also limited the storage space available to each user (default no limitation, but 1GB, 5GB, 15GB quotas are available).
+The admin can also limit the storage space available to each user (default no limitation, but 1GB, 5GB, 15GB quotas are available).
 
 \subsection{Security measures}
 \label{subsec:security}
@@ -168,7 +168,7 @@ In the \href{https://github.com/IsacPasianotto/cloud-computing-assignment/blob/m
 I've performed the test on my laptop, which as a \href{https://www.intel.com/content/www/us/en/products/sku/193555/intel-core-i58365u-processor-6m-cache-up-to-4-10-ghz/specifications.html}{Intel Core i5-8365U} CPU and 2$\times$8GB of DDR4 RAM.
 Locust was set to spawn a user each second, up to a given upper limit, and at each second, for all the currently spawned users, try to perform one of the above tasks.
 
-It toured out that my hardware was able to handle up to 20 users without any issue, but when the number of users was increased to 30, the system started to show the "\textit{429: Too Many Requests}" error\footnote{It's also worth to be mentioned that warning about usage over 90\% of the CPU.}, see \hyperref[fig:locust-load-tests]{Figure \ref{fig:locust-load-tests}}. 
+It turned out that my hardware was able to handle up to 20 users without any issue, but when the number of users was increased to 30, the system started to show the "\textit{429: Too Many Requests}" error\footnote{It's also worth to be mentioned that warning about usage over 90\% of the CPU.}, see \hyperref[fig:locust-load-tests]{Figure \ref{fig:locust-load-tests}}. 
 
 \begin{figure}[H]
     \centering
@@ -214,19 +214,19 @@ During the load test reported in the \hyperref[fig:locust-load-tests]{Figure \re
     \label{fig:docker-stats}
 \end{figure}
 
-We can see that the container which are most stressed are the proxy the web server and the nextcloud app, which is the one that handles requests
-The database server is not stressed. This can be explained by the fact that the database is used to store the metadata of the files, and not the files themselves, so the I/O traffic is lower. 
+We can see that the container which are most stressed are the proxy the web server and the nextcloud app, which is the one that handles requests.
+The database server is not stressed. This can be explained by the fact that the database is used to store the metadata of the files, and not the actual files, so the I/O traffic in this case is lower. 
 
 \subsection{Deployment plans for hypothetical real-world scenario}
 \label{subsec:deployment-real-world}
 
-In a real-world scenario, the requirements of the system will be much higher than the one of the test, but also the resources available will be much higher.
+In a real-world scenario, the requirements of the system will be much higher than the one of the test, but also the resources available will be much more permissive.
 In order to scale this solution to a production scenario some paths can be followed. 
 
 \subsubsection{Approach-independent considerations}
 \label{subsubsec:approach-independent}
 
-Imaging a much higher traffic, some primary considerations can be made: 
+Imagining a much higher traffic, some primary considerations can be made: 
 first of all, some of the containers can be scaled vertically (i.e. increase the resources available to the container), for example the \texttt{redis} container, which is used as a cache server, in this way the cache hit rate will be increased, and the communication with the database will be reduced.
 Also the \texttt{caddy} container can be scaled vertically, in order to handle more SSL connections.
 
