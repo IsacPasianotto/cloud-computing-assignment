@@ -101,9 +101,9 @@ Before running the benchmark, create a dedicated namespace with:
 kubectl create ns osu
 ```
 
-Then, to perfor a bencharmk there is provided the [`perform_benchmark.sh`](./k8s-setup/scripts/perform_benchmark.sh) script that will do all the needed steps for you. It is expected to be launched as follow: 
+Then, to perfor a bencharmk there is provided the [`06_perform_benchmark.sh`](./k8s-setup/scripts/06_perform_benchmark.sh) script that will do all the needed steps for you. It is expected to be launched as follow: 
 
 ```
-[vagrant@ex3-00 ~]$ ./perform_benchmark.sh <yaml-file> <output-file>
+[vagrant@ex3-00 ~]$ ./06_perform_benchmark.sh <yaml-file> <output-file>
 ```
 where `<yaml-file>` is the name of the yaml file containing the benchmark definition, see the [`yaml-files`](https://github.com/IsacPasianotto/cloud-computing-assignment/tree/main/exercise03/yaml-files) folder for some examples.
