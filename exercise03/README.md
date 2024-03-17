@@ -105,5 +105,5 @@ Then, to perfor a bencharmk there is provided the [`perform_benchmark.sh`](./k8s
 
 ```
 [vagrant@ex3-00 ~]$ ./perform_benchmark.sh <yaml-file> <output-file>
-
+```
 where `<yaml-file>` is the name of the yaml file containing the benchmark definition, see the [`yaml-files`](https://github.com/IsacPasianotto/cloud-computing-assignment/tree/main/exercise03/yaml-files) folder for some examples.
