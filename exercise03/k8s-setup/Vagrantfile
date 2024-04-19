@@ -1,7 +1,7 @@
 servers = [
   { :hostname => "ex3-00", :ip => "192.168.132.60" },
   { :hostname => "ex3-01", :ip => "192.168.132.61" },
-  # { :hostname => "ex3-02", :ip => "192.168.132.62" },
+  { :hostname => "ex3-02", :ip => "192.168.132.62" },
 ]
 
 controlpscripts = [
@@ -9,18 +9,22 @@ controlpscripts = [
   './scripts/01_install_k8s.sh',
   './scripts/02_other_conveniences.sh',
   './scripts/03_images_builder.sh',
+  './scripts/08_slurm_install.sh',
+  './scripts/09_enable_MPI.sh',
 ]
 
 scripts = [
   './scripts/00_bash_common_provisioning.sh',
   './scripts/01bis_install_k8s_worker.sh',
   './scripts/03_images_builder.sh',
+  './scripts/08bis_slurm_worker.sh',
+  './scripts/09_enable_MPI.sh',
 ]
 
 tocopy = [
   './scripts/04_deploy_flannel.sh',
   './scripts/05_deploy_calico.sh',
-  './scripts/perform_benchmark.sh',
+  './scripts/06_perform_benchmark.sh',
   '../yaml-files/latency-2-nodes.yaml',
   '../yaml-files/latency-1-node.yaml',
   '../yaml-files/collective-allgather-1node.yaml',
@@ -32,9 +36,6 @@ Vagrant.configure("2") do |config|
   
   config.vm.provider :libvirt do |lv|
     lv.qemu_use_session = false
-    # Minimum requirements for kubernetes
-    # lv.memory = 2048
-    # lv.cpus = 2
     lv.memory = 2048
     lv.cpus = 2
   end
@@ -43,25 +44,26 @@ Vagrant.configure("2") do |config|
   servers.each do |conf|
     config.vm.define conf[:hostname] do |node|
       node.vm.hostname = conf[:hostname]
-      node.vm.synced_folder ".", "/vagrant", disabled: true
-
+      
       node.vm.network :private_network,
                       :libvirt__network_name => 'ex3-net'
 
-      # differente provisioning for the control control-plane-node
+      # Provisioning based on node type
       if conf[:hostname] == "ex3-00"
         controlpscripts.each do |script|
           node.vm.provision :shell,
                             :path => script,
                             :args => [conf[:ip]]
         end
+
         node.vm.provision :shell,
                           :inline => "kubectl wait --for=condition=ready node ex3-00 --timeout=300s",
                           :privileged => false
-        # allow to schedule pods also on the control-plane node
-        node.vm.provision :shell,
-                          :inline => "kubectl taint nodes ex3-00 node-role.kubernetes.io/control-plane-",
-                          :privileged => true
+
+        # Taint the control plane means that the control plane will also be used as a worker node
+        # node.vm.provision :shell,
+        #                   :inline => "kubectl taint nodes ex3-00 node-role.kubernetes.io/control-plane-",
+        #                   :privileged => true
 
         tocopy.each do |script|
           node.vm.provision :file,
@@ -70,9 +72,9 @@ Vagrant.configure("2") do |config|
         end
       else
         scripts.each do |script|
-        node.vm.provision :shell,
-                          :path => script,
-                          :args => [conf[:ip]]
+          node.vm.provision :shell,
+                            :path => script,
+                            :args => [conf[:ip]]
         end
       end
     end

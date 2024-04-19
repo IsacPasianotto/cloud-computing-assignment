@@ -73,4 +73,3 @@ chown vagrant:vagrant /home/vagrant/.ssh/id_rsa
 chmod 600 /home/vagrant/.ssh/id_rsa.pub
 
 chmod 600 /root/.ssh/authorized_keys;
-
