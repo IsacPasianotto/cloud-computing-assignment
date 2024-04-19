@@ -158,3 +158,6 @@ chown -R slurm:slurm /run/slurm
 mkdir -p /var/spool/slurm
 chown -R slurm:slurm /var/spool/slurm
 chown -R slurm:slurm /var/log/slurm
+
+mkdir -p /var/lib/slurm/slurmd
+sudo chown -R slurm:slurm /var/lib/slurm/slurmd/

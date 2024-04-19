@@ -107,3 +107,66 @@ Then, to perfor a bencharmk there is provided the [`06_perform_benchmark.sh`](./
 [vagrant@ex3-00 ~]$ ./06_perform_benchmark.sh <yaml-file> <output-file>
 ```
 where `<yaml-file>` is the name of the yaml file containing the benchmark definition, see the [`yaml-files`](https://github.com/IsacPasianotto/cloud-computing-assignment/tree/main/exercise03/yaml-files) folder for some examples.
+
+
+### MPI with slurm 
+
+
+In this branch I have also added the possibility to run the benchmark using `slurm` as the scheduler. This was done to compare the performance of the traditiona HPC-bare-metal approach with the cloud one which uses kubernetes. 
+Since it was an extra feature and it was not the focus of the assignment, The work is not as polished as the rest of the solution.
+Hence there are some compromises (in particular, the need of running the mpi code as root otherwise slurm will not work) that I would have avoided in a real-world scenario.
+
+Download and compile the `osu-micro-benchmarks`:
+
+```
+mkdir -p /home/vagrant/shared/my-osu
+cd /home/vagrant/shared/my-osu
+wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-7.3.tar.gz
+tar -xvf osu-micro-benchmarks-7.3.tar.gz
+cd osu-micro-benchmarks-7.3
+./configure CC=/usr/lib64/openmpi/bin/mpicc CXX=/usr/lib64/openmpi/bin/mpicxx --prefix=/home/vagrant/shared/my-osu
+make
+make install
+```
+
+Then, you need to define a `slurm` job file, for example: 
+
+```bash 
+#!/bin/bash
+#SBATCH --no-requeue
+#SBATCH --job-name="osu-test"
+#SBATCH --partition=debug
+#SBATCH --nodes=2
+#SBATCH --ntasks=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=1G
+#SBATCH --time=00:15:00
+#SBATCH --get-user-env
+#SBATCH --nodelist=ex3-01,ex3-02
+
+# Standard preamble
+echo "---------------------------------------------"
+echo "SLURM job ID:        $SLURM_JOB_ID"
+echo "SLURM job node list: $SLURM_JOB_NODELIST"
+echo "hostname:            $(hostname)"
+echo "DATE:                $(date)"
+echo "---------------------------------------------"
+
+export OMPI_ALLOW_RUN_AS_ROOT=1
+export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+
+module load mpi/openmpi-x86_64
+
+
+for i in {1..5}
+do
+        mpirun -np 2 /home/vagrant/shared/my-osu/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency >> /home/vagrant/shared/osu-2-nodes-baremetal.txt
+done
+```
+
+Then, you can submit the job with:
+
+```
+sudo sbatch <job-file>
+```
