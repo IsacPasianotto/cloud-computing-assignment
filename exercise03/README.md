@@ -48,7 +48,7 @@ ex3-01   Ready    <none>          4m36s   v1.28.7
 Following the [official repository documentation](https://github.com/kubeflow/mpi-operator) the installation of the MPI operator (deploy version) can be done with the following command:
 
 ```
-[vagrant@ex3-00 ~]$ kubectl apply -f https://raw.githubusercontent.com/kubeflow/mpi-operator/master/deploy/v2beta1/mpi-operator.yaml
+[vagrant@ex3-00 ~]$ kubectl apply --server-side -f https://raw.githubusercontent.com/kubeflow/mpi-operator/v0.5.0/deploy/v2beta1/mpi-operator.yaml
 ```
 
 

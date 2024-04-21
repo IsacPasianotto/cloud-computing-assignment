@@ -9,7 +9,7 @@ sudo su
 echo "" >> /etc/hosts
 echo "192.168.132.60 ex3-00 ex3-00" >> /etc/hosts
 echo "192.168.132.61 ex3-01 ex3-01" >> /etc/hosts
-echo "192.168.132.62 ex3-02 ex3-02" >> /etc/hosts
+# echo "192.168.132.62 ex3-02 ex3-02" >> /etc/hosts
 
 ####  Set the NFS server on the master node
 
@@ -126,9 +126,8 @@ SlurmdDebug=info
 
 SlurmdLogFile=/var/log/slurm/slurmd.log
 
-NodeName=ex3-00 NodeAddr=192.168.132.60 CPUs=2 RealMemory=1464
-NodeName=ex3-01 NodeAddr=192.168.132.61 CPUs=2 RealMemory=1464
-NodeName=ex3-02 NodeAddr=192.168.132.62 CPUs=2 RealMemory=1464
+NodeName=ex3-00 NodeAddr=192.168.132.60 CPUs=2 RealMemory=2196
+NodeName=ex3-01 NodeAddr=192.168.132.61 CPUs=2 RealMemory=2196
 
 # PartitionName ################################################################
 #

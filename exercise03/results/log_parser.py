@@ -39,7 +39,7 @@ def process_logs_in_current_directory():
         csv_writer.writerow(['Size', 'Latency(us)', 'Benchmark'])
 
         for filename in os.listdir(os.getcwd()):
-            if filename.endswith(".log"):
+            if filename.endswith(".txt"):
                 benchmark_name = os.path.splitext(filename)[0]
                 input_file = os.path.join(os.getcwd(), filename)
                 parse_logs(input_file, "combined_data.csv", benchmark_name)

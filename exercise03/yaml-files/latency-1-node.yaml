@@ -7,12 +7,13 @@ spec:
   runPolicy:
     cleanPodPolicy: Running
   sshAuthMountPath: /home/mpiuser/.ssh
-  mpiImplementation: MPICH
+  mpiImplementation: OpenMPI
   mpiReplicaSpecs:
     Launcher:
       replicas: 1
       template:
         spec:
+          nodeName: ex3-01
           containers:
           - image: localhost/my-osu-bench:latest
             imagePullPolicy: Never
@@ -31,6 +32,7 @@ spec:
           labels:
             app: osu-worker
         spec:
+          nodeName: ex3-01
           containers:
           - image: localhost/my-osu-bench:latest
             imagePullPolicy: Never

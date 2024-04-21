@@ -7,7 +7,7 @@ spec:
   runPolicy:
     cleanPodPolicy: Running
   sshAuthMountPath: /home/mpiuser/.ssh
-  mpiImplementation: MPICH
+  mpiImplementation: OpenMPI
   mpiReplicaSpecs:
     Launcher:
       replicas: 1
@@ -19,8 +19,9 @@ spec:
             name: osu-launcher
             securityContext:
               runAsUser: 1000
-            args:
+            command:
             - mpirun
+            args:
             - -n
             - "2"
             - /home/mpiuser/osu/libexec/osu-micro-benchmarks/mpi/collective/osu_allgather
@@ -31,6 +32,7 @@ spec:
           labels:
             app: osu-worker
         spec:
+          nodeName: ex3-01
           containers:
           - image: localhost/my-osu-bench:latest
             imagePullPolicy: Never
